@@ -2,61 +2,86 @@ Team-19-HCI-Project
 
 **Trash Taste — README**
 
-Overview:
-Trash Taste is a mobile coffee-ordering UI focused on helping customers notice and resolve conflicting drink customizations. Selecting a dairy alternative, such as oat milk, does not necessarily remove other dairy ingredients from a drink. The UI addresses this problem with a confirmation prompt that helps the customer review remaining dairy ingredients before continuing.
+Purpose
+Trash Taste is being developed to improve communication between customers, front-line workers, and kitchen staff during busy food and beverage service. The project investigates how campus dining and catering staff handle allergen information, special dietary requests, and food safety requirements during high-volume service.
 
-For example, after a customer selects oat milk for a drink with dairy whipped cream, the UI prompts:
+Interviews identified ambiguous drink modifications, staff interruptions to clarify dietary requests, guessed wait times, and remakes that waste food and beverages. Trash Taste addresses these problems through three connected features: dietary customization prompts, item-specific preparation estimates with drive-through coordination, and kitchen progress tracking with a front-line display.
+
+Trash Taste is the application name. Campus Cup and Starbucks are stores represented in the customer-facing design. The Figma designs guide the appearance of the application; they are not the final application itself.
+Three Core Solutions
+1. Dietary Customization Prompts
+When a customer selects a dairy alternative, the UI checks the demonstrated combination for remaining dairy ingredients and asks the customer to confirm a choice. For example:
 You selected oat milk. Would you like to remove the dairy whipped cream or switch to vegan whip?
 
-The customer selects an option and confirms the change. This makes the ingredient choice explicit instead of assuming that selecting alternative milk makes the entire drink dairy-free.
+Confirmation controls let the customer resolve the combination before continuing. The design also includes an option to keep dairy whip when that is intentional. This makes the choice explicit and reduces the need for staff to stop preparation to clarify the order.
+2. Item Preparation Estimates and Drive-Through Coordination
+The application is intended to display an estimated preparation time for each drink or food item and synchronize order information with the drive-through workflow. Customers can use this information to plan pickup, while staff can coordinate order readiness and handoff. The goal is to reduce unnecessary waiting and help customers pay and collect their orders efficiently.
+3. Kitchen Progress Tracking and Front-Line Display
+Kitchen staff use an interface to record what they are preparing and its current preparation stage. An estimation algorithm uses these updates to estimate readiness. A larger display presents that information to front-line workers so they can communicate informed wait estimates instead of guessing when an item will be available.
 
-Trash Taste is the app name. Campus Cup and Starbucks are store names represented in the design. The Figma file provides the visual reference for the intended UI.
-Requirements and Access
-- A mobile phone with an internet connection.
-- The final app link or launch instructions must be supplied with the implementation.
+Together, these features aim to clarify orders before preparation, communicate progress during preparation, and improve pickup coordination.
+Requirements and Setup
+Intended Devices
+- Customers: A mobile phone with an internet connection; portrait orientation for the illustrated ordering layout.
+- Kitchen staff: A device capable of opening the preparation-tracking interface.
+- Front-line staff: A larger screen or TV connected to a device that can display preparation progress and estimates.
+Launch and Access Details
+The final delivery method and technical requirements have not yet been supplied. Complete the following information before submitting the runnable application:
+Setup detail	Information to supply
+Application access	Final application URL or installation package
+Installation	Exact installation steps, or confirmation that the application runs in a browser without additional software
+Supported environment	Supported browsers, operating systems, and required settings
+Test access	Customer and staff test credentials, if authentication is required
+Staff display	Steps to open the kitchen interface and larger front-line display
+Shared data	Any connection or configuration required to synchronize customer, kitchen, and front-line views
 
-How the UI Functions
-1. Select a Store and Drink
-Open Trash Taste, choose a store, and select a drink to open its customization screen. The illustrated Starbucks example uses a Caffè Latte.
-2. Customize the Drink
-Review the available drink options, including milk and toppings. Select a dairy alternative, such as oat milk, while dairy whipped cream is still selected.
-3. Review the Dairy Prompt
-The intended interaction displays a prompt explaining that the milk selection and dairy whipped cream may not match the customer’s intended customization. The prompt asks whether the customer wants to remove the dairy whipped cream or switch to vegan whip.
 
-Selecting alternative milk alone should not silently remove another ingredient: the customer confirms the desired change.
-4. Confirm a Choice
-Choose one of the following actions:
-- Remove dairy whipped cream: Continue without the dairy whipped cream topping.
-- Switch to vegan whip: Replace the dairy whipped cream with the vegan alternative.
-The supplied customization designs also show an option to keep dairy whip. This allows a customer who intentionally wants that combination to retain it.
-5. Review the Updated Drink
-After confirming, review the customization screen to check the selected milk and topping. Add the drink to the order and review its details in the order summary.
-
-Main Demonstration Scenario
-1. Open Trash Taste and select Starbucks.
-2. Select Caffè Latte.
-3. Leave dairy whipped cream selected and change the milk to oat milk.
-4. Review the dairy-ingredient prompt.
-5. Select the vegan-whip alternative and confirm the change.
-6. Check that the drink details reflect oat milk and vegan whip.
-7. Add the drink to the order and review the summary.
-8. Repeat the scenario using the option to remove dairy whipped cream. If implemented, also test the option to keep dairy whip.
-Expected behavior: The UI draws attention to the remaining dairy topping and lets the customer explicitly choose how to proceed.
-Supporting Screens
-The visual design includes dietary preferences, individual order summaries, and group-order screens. These support the ordering experience, while the primary solution here is the dairy-alternative confirmation prompt. The final implementation should identify which supporting screens are interactive.
-
-Scope and Limitations
-- This project focuses on the dairy-alternative prompt. Drink preparation estimates, drive-through synchronization, and kitchen staff tracking are separate solution ideas and are outside this README’s scope.
-- The Figma screens describe the intended appearance and flow. Actual implemented behavior must be checked against the demonstration steps above.
-- Selecting oat milk or removing dairy whipped cream does not establish that every ingredient in a drink is dairy-free. The demonstrated prompt addresses the specified milk-and-topping combination.
-- Supported ingredient combinations, saved preferences, payment behavior, and real order submission must be documented according to the completed implementation.
-- Any simulated controls, predefined example data, or incomplete interactions must be listed before submission.
-
+The Figma design link is a visual reference and does not replace these launch instructions.
+Operating Instructions
+These instructions describe the intended application workflow. Verify control names and navigation against the completed implementation.
+Customer: Customize a Drink and Resolve a Dietary Conflict
+1. Open Trash Taste and select a store, such as Campus Cup or Starbucks.
+2. Browse the menu and select a drink. The illustrated Starbucks example uses Caffè Latte.
+3. Review the size, temperature, milk, syrup, topping, and quantity options.
+4. Select oat milk while dairy whipped cream remains selected.
+5. Read the prompt identifying the remaining dairy topping.
+6. Choose to remove dairy whipped cream or switch to vegan whip, then confirm. If keeping dairy whip is intentional, use the corresponding option where available.
+7. Review the updated customization details and add the drink to the order.
+8. Check the order summary before continuing.
+Customer: Review Preparation Estimates and Coordinate Pickup
+1. Review the estimated preparation time for each ordered drink or food item.
+2. Use the displayed readiness information to plan pickup.
+3. For a drive-through order, follow the application’s pickup instructions as the order information is synchronized with the drive-through workflow.
+4. Complete the available payment and collection steps when the order is ready.
+Kitchen Staff: Update Preparation Progress
+1. Open the kitchen tracking interface.
+2. Select or enter the item currently being prepared.
+3. Record its current preparation stage.
+4. Update the stage as preparation progresses.
+5. Mark the item ready when preparation is complete.
+Front-Line Staff: Check Readiness and Communicate Wait Times
+1. Open the front-line display on the designated larger screen or TV.
+2. Review the preparation stages and estimated readiness times generated from kitchen updates.
+3. Use the displayed information to answer customer questions and coordinate pickup or drive-through handoff.
+4. Check updated estimates as kitchen staff report progress.
+Supporting Ordering Features
+The customer-facing designs also include dietary profiles, individual order summaries, and group ordering. In the group example, Person A has a latte dairy conflict, Person B reviews a hazelnut conflict and vanilla cold-brew alternative, and Person C selects an Americano. These screens support the ordering experience alongside the three core solutions.
+Scope and Implementation Limitations
+- All three solutions above are part of the planned application. The available materials describe the design and rationale; they do not verify which interactions are already implemented.
+- Preparation times are estimates. The completed implementation should explain how estimates are calculated and refreshed, and how delayed or missing kitchen updates are handled.
+- Drive-through synchronization requires a defined connection between the ordering and staff workflows. Document whether the prototype uses simulated data or an actual integration.
+- Dietary prompts address supported ingredient combinations. A milk substitution alone does not establish that every ingredient in a drink is dairy-free.
+- Document any simulated payments, sample menu data, unsaved preferences, incomplete controls, or limits on simultaneous users in the final implementation.
+- Food safety motivates the broader project, but the supplied three solutions do not specify a temperature-logging feature.
 Troubleshooting
 Problem	Action
-A change is not reflected in the drink details	Check that the choice was confirmed. Report the issue if the previous topping remains selected.
-Content extends beyond the screen	Scroll through the customization screen in portrait orientation.
+The application will not open	Check the internet connection and follow the final launch instructions supplied with the project.
+The dietary prompt does not appear	Try the demonstration combination: oat milk with dairy whipped cream still selected.
+A customization does not change	Confirm the prompt choice, then review the drink details again.
+Preparation estimates appear outdated	Check the kitchen item’s latest stage and whether the shared connection is active.
+Kitchen progress is missing from the front-line display	Check that the update was saved and that both views refer to the same item or order.
+Drive-through status does not update	Check the order’s pickup workflow and the synchronization configuration documented for the implementation.
 
 
-Final Submission Details
-Before submission, make sure the application works on the specific phone.
+Verification Before Submission
+Test the dietary prompt from selection through order summary. Then update an item’s preparation stage in the kitchen view and verify that the estimate and front-line display reflect the change. Check the drive-through pickup workflow. Complete the setup table and replace planned behavior with confirmed implementation details wherever necessary.
