@@ -43,10 +43,10 @@ Main Demonstration Scenario
 8. Repeat the scenario using the option to remove dairy whipped cream. If implemented, also test the option to keep dairy whip.
 Expected behavior: The UI draws attention to the remaining dairy topping and lets the customer explicitly choose how to proceed.
 Supporting Screens
-The visual design includes dietary preferences, individual order summaries, and group-order screens. These support the ordering experience, while the primary solution documented here is the dairy-alternative confirmation prompt. The final implementation should identify which supporting screens are interactive.
+The visual design includes dietary preferences, individual order summaries, and group-order screens. These support the ordering experience, while the primary solution here is the dairy-alternative confirmation prompt. The final implementation should identify which supporting screens are interactive.
 
 Scope and Limitations
-- This project focuses on the dairy-alternative prompt described in Solution 1. Drink preparation estimates, drive-through synchronization, and kitchen staff tracking are separate solution ideas and are outside this README’s scope.
+- This project focuses on the dairy-alternative prompt. Drink preparation estimates, drive-through synchronization, and kitchen staff tracking are separate solution ideas and are outside this README’s scope.
 - The Figma screens describe the intended appearance and flow. Actual implemented behavior must be checked against the demonstration steps above.
 - Selecting oat milk or removing dairy whipped cream does not establish that every ingredient in a drink is dairy-free. The demonstrated prompt addresses the specified milk-and-topping combination.
 - Supported ingredient combinations, saved preferences, payment behavior, and real order submission must be documented according to the completed implementation.
