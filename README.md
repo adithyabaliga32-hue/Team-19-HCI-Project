@@ -1,13 +1,13 @@
-Team-19-HCI-Project
+ServeFlow
 
-**Trash Taste — README**
+**Team 19 | HCI Project**
 
-Purpose
-Trash Taste is being developed to improve communication between customers, front-line workers, and kitchen staff during busy food and beverage service. The project investigates how campus dining and catering staff handle allergen information, special dietary requests, and food safety requirements during high-volume service.
+Purpose:
+ServeFlow is being developed to improve communication between customers, front-line workers, and kitchen staff during busy food and beverage service. The project investigates how campus dining and catering staff handle allergen information, special dietary requests, and food safety requirements during high-volume service.
 
-Interviews identified ambiguous drink modifications, staff interruptions to clarify dietary requests, guessed wait times, and remakes that waste food and beverages. Trash Taste addresses these problems through three connected features: dietary customization prompts, item-specific preparation estimates with drive-through coordination, and kitchen progress tracking with a front-line display.
+Interviews identified ambiguous drink modifications, staff interruptions to clarify dietary requests, guessed wait times, and remakes that waste food and beverages. ServeFlow addresses these problems through three connected features: dietary customization prompts, item-specific preparation estimates with drive-through coordination, and kitchen progress tracking with a front-line display.
 
-Trash Taste is the application name. Campus Cup and Starbucks are stores represented in the customer-facing design. The Figma designs guide the appearance of the application; they are not the final application itself.
+Campus Cup and Starbucks are stores represented in ServeFlow’s customer-facing design. The Figma designs guide the appearance of the application; they are not the final application itself.
 Three Core Solutions
 1. Dietary Customization Prompts
 When a customer selects a dairy alternative, the UI checks the demonstrated combination for remaining dairy ingredients and asks the customer to confirm a choice. For example:
@@ -40,7 +40,7 @@ The Figma design link is a visual reference and does not replace these launch in
 Operating Instructions
 These instructions describe the intended application workflow. Verify control names and navigation against the completed implementation.
 Customer: Customize a Drink and Resolve a Dietary Conflict
-1. Open Trash Taste and select a store, such as Campus Cup or Starbucks.
+1. Open ServeFlow and select a store, such as Campus Cup or Starbucks.
 2. Browse the menu and select a drink. The illustrated Starbucks example uses Caffè Latte.
 3. Review the size, temperature, milk, syrup, topping, and quantity options.
 4. Select oat milk while dairy whipped cream remains selected.
