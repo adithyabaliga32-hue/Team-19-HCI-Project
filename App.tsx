@@ -681,7 +681,7 @@ export default function App() {
   function renderProfile() {
     return (
       <>
-        {header("Dietary profile", "A little care with every cup")}
+        {header("Dietary profile", "Manage your dietary preferences")}
         <View style={styles.profileHero}>
           <View style={styles.profileInitials}>
             <Text style={styles.profileInitialsText}>YO</Text>
@@ -722,15 +722,16 @@ export default function App() {
             );
           })}
         <View style={styles.tipsCard}>
-          <Text style={styles.tipsTitle}>♧  Vegan — dairy & whip prompt</Text>
+          <Text style={styles.tipsTitle}>♧  Vegan — whipped cream choice</Text>
           <Text style={styles.cardDetail}>
-            When ordering, you’ll be prompted to switch whipped cream to vegan whip
-            and select a plant-based milk.
+            If you choose oat milk while dairy whipped cream is selected, we’ll ask
+            whether you’d like to switch to vegan whip.
           </Text>
           <View style={styles.divider} />
-          <Text style={styles.tipsTitle}>ⓘ  Nut allergy — hazelnut warning</Text>
+          <Text style={styles.tipsTitle}>ⓘ  Nut allergy — hazelnut alert</Text>
           <Text style={styles.cardDetail}>
-            Hazelnut and other nut modifiers are flagged in group orders.
+            If someone with a nut allergy selects hazelnut syrup, we’ll show a
+            warning and offer vanilla syrup instead.
           </Text>
         </View>
       </>
