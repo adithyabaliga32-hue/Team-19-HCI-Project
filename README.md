@@ -4,20 +4,22 @@ ServeFlow
 Overview and Purpose
 ServeFlow is a mobile beverage-ordering interface focused on identifying and resolving ingredient conflicts during customization. It helps customers communicate dietary preferences clearly before submitting an order, reducing the need for staff to clarify ambiguous modifications and remake drinks.
 
-The central solution is a contextual confirmation prompt. For example, selecting oat milk while dairy whipped cream remains selected prompts the customer to switch to vegan whip. The interface also uses dietary tags to identify conflicting ingredients when ordering for multiple people.
+The central solution is a confirmation prompt. For example, selecting oat milk while dairy whipped cream remains selected prompts the customer to switch to vegan whip. The interface also uses dietary tags to identify conflicting ingredients when ordering for multiple people.
 
-The project demonstrates this solution through three tasks: a simple saved order, a moderate drink customization, and a complex group order. Campus Cup and Starbucks are store names within the design. The Figma screens provide the visual reference for ServeFlow’s implementation.
+The project demonstrates this solution through three tasks: a simple saved order, a moderate drink customization, and a complex group order. Campus Cup and Starbucks are store names within the design.
 
-Requirements and Setup
-- A mobile phone with an internet connection.
-- The final application link or installation package supplied by the project team.
-The delivery method, supported browsers or operating systems, installation requirements, and test credentials have not yet been provided. Complete the following before submission:
-Setup detail	Information to provide
-Application access	Final application URL or installation package
-Installation requirements	Exact setup steps, or confirmation that no additional software is required
-Supported environment	Supported browsers/devices and any required settings
-Test credentials	User ID and password, or confirmation that no login is required
-Demonstration data	How to access the saved Oat Latte and the group-order participants
+React Native Setup
+The active application is built with React Native and Expo and targets iOS and Android.
+
+1. Install Node.js and npm.
+2. From the repository root, run `npm install`.
+3. Run `npm run web` to open the interactive, portrait phone-sized preview at `http://localhost:8081`. It simulates a mobile device in the browser and updates as you save code changes.
+4. For a native Android preview on Windows without Expo Go, install Android Studio, install the Android SDK, and create and start a virtual phone in **Device Manager**.
+5. With the Android emulator running, run `npx expo run:android` from the repository root. Expo builds and installs the app on the virtual device; later native changes may require rebuilding.
+
+iOS Simulator requires macOS and Xcode and cannot run locally on Windows. The Expo Go workflow (`npm start`, then open Expo Go) is optional; it is not required for the Android emulator build above.
+
+Use `npm run typecheck` to run the TypeScript check. The app entry point is `App.tsx`, with Expo configuration in `app.json`. The React Native app and its dependencies are defined by `package.json` and `package-lock.json`. The earlier Swift/Xcode app files have been removed from this branch.
 
 
 How the UI Functions
