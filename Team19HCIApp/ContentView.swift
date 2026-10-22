@@ -298,8 +298,17 @@ struct ContentView: View {
                     else { profileTags.insert(tag) }
                 } label: {
                     HStack(spacing: 9) {
-                        Image(systemName: profileTags.contains(tag) ? "checkmark.circle" : "circle")
-                            .foregroundStyle(CoffeeStyle.green)
+                        if profileTags.contains(tag) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 18, height: 18)
+                                .background(CoffeeStyle.green, in: RoundedRectangle(cornerRadius: 5))
+                        } else {
+                            Circle()
+                                .stroke(CoffeeStyle.muted, lineWidth: 1.5)
+                                .frame(width: 18, height: 18)
+                        }
                         Text(tag)
                         Spacer()
                     }

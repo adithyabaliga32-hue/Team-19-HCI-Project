@@ -126,7 +126,9 @@
     .restriction-title { font-size: 14px; margin: 0 0 8px; }
     .restriction { width: 100%; display: flex; align-items: center; gap: 9px; padding: 10px 12px; margin: 7px 0; border-radius: 11px; border: 1px solid var(--line); background: white; text-align: left; font-size: 12px; }
     .restriction.selected { border-color: #729180; background: var(--green-soft); font-weight: 650; }
-    .restriction span:first-child { color: var(--green); font-size: 17px; }
+    .restriction-check { width: 18px; height: 18px; flex: 0 0 auto; display: grid; place-items: center; border: 1.7px solid #7b827c; border-radius: 50%; color: white; }
+    .restriction.selected .restriction-check { border-color: var(--green); border-radius: 5px; background: var(--green); }
+    .restriction.selected .restriction-check::after { content: ""; width: 8px; height: 4px; border-left: 1.7px solid white; border-bottom: 1.7px solid white; transform: rotate(-45deg) translate(1px, -1px); }
     .tip-list { background: white; border-radius: 16px; padding: 12px; margin-top: 12px; color: var(--green); font-size: 11px; }
     .tip-list p { margin: 0; padding: 2px 0 9px; }
     .tip-list p + p { border-top: 1px solid var(--line); padding-top: 9px; }
@@ -253,7 +255,7 @@
         <div class="profile-hero"><div class="profile-initials">YO</div><div><strong>Your preferences</strong><small>Used for individual &amp; group orders</small></div></div>
         <div class="profile-callout">♧ &nbsp;We’ll flag choices that may conflict.<small>Your profile helps you choose.</small></div>
         <p class="restriction-title">Dietary restrictions</p>
-        ${options.map(tag => `<button class="restriction ${selectedProfileTags.includes(tag) ? "selected" : ""}" data-action="profile-tag" data-tag="${tag}"><span>${selectedProfileTags.includes(tag) ? "☑" : "◯"}</span>${tag}</button>`).join("")}
+        ${options.map(tag => `<button class="restriction ${selectedProfileTags.includes(tag) ? "selected" : ""}" data-action="profile-tag" data-tag="${tag}" aria-pressed="${selectedProfileTags.includes(tag)}"><span class="restriction-check" aria-hidden="true"></span>${tag}</button>`).join("")}
         <div class="tip-list"><p>♧ &nbsp;Vegan — dairy &amp; whip prompt<small>When ordering, you'll be prompted to switch whipped cream to vegan whip and select a plant-based milk.</small></p><p>ⓘ &nbsp;Nut allergy — hazelnut warning<small>Hazelnut and other nut modifiers are flagged in group orders.</small></p></div>`;
     }
     function renderSummary() {
