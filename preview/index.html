@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f5ef">
+  <title>ServeFlow · Group order</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #26332d;
+      background: #20211f;
+      font-synthesis: none;
+      --green: #205d48;
+      --green-dark: #194d3c;
+      --green-soft: #eaf1e9;
+      --cream: #f7f5ef;
+      --muted: #7c837c;
+      --line: #e8e6df;
+      --card: #fff;
+    }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 22px; }
+    button { color: inherit; font: inherit; cursor: pointer; }
+    .phone {
+      width: min(100%, 390px); height: min(844px, calc(100vh - 44px)); min-height: 620px;
+      display: flex; flex-direction: column; overflow: hidden; position: relative;
+      border: 1px solid #d9d8d2; border-radius: 34px; background: var(--cream);
+      box-shadow: 0 20px 70px #0007;
+    }
+    .content { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 20px 14px; scrollbar-width: none; }
+    .content::-webkit-scrollbar { display: none; }
+    .login-screen { min-height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    .login-brand { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 21px; color: white; background: var(--green); margin-bottom: 27px; }
+    .login-brand svg { width: 35px; height: 35px; }
+    .login-screen h1 { font-size: 27px; letter-spacing: -.6px; }
+    .login-intro { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 8px 0 28px; }
+    .login-form { display: grid; gap: 15px; }
+    .login-field { display: grid; gap: 7px; font-size: 12px; font-weight: 650; }
+    .login-field input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: white; color: inherit; font: inherit; font-size: 13px; outline: none; }
+    .login-field input:focus { border-color: var(--green); box-shadow: 0 0 0 3px #205d481a; }
+    .login-error { min-height: 16px; color: #a53d32; font-size: 11px; margin: -5px 0 0; }
+    .login-submit { min-height: 48px; }
+    .topline { display: flex; align-items: center; gap: 12px; margin: 1px 0 15px; }
+    .back {
+      width: 34px; height: 34px; flex: 0 0 auto; border: 0; border-radius: 50%;
+      display: grid; place-items: center; background: white; color: var(--green); font-size: 20px;
+    }
+    h1 { font-size: 20px; letter-spacing: -.35px; line-height: 1.15; margin: 0; }
+    .subtitle { color: var(--muted); font-size: 11px; margin-top: 3px; }
+    .crew-banner { display: flex; align-items: center; gap: 12px; border-radius: 17px; padding: 14px; background: var(--green-soft); margin-bottom: 9px; }
+    .banner-icon { color: var(--green); font-size: 24px; }
+    .crew-banner strong { font-size: 14px; }
+    .crew-banner p { margin: 4px 0 0; font-size: 11px; color: var(--muted); }
+    .row-button {
+      width: 100%; border: 1px solid var(--line); border-radius: 14px; background: white;
+      display: flex; gap: 10px; align-items: center; padding: 10px 12px; text-align: left; margin: 9px 0;
+    }
+    .row-button .arrow { margin-left: auto; color: var(--muted); font-size: 21px; }
+    .tag-symbol { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--green-soft); color: var(--green); }
+    .row-button strong { display: block; font-size: 12px; }
+    .row-button small { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .section-heading { display: flex; justify-content: space-between; font-size: 13px; margin: 10px 0 8px; }
+    .section-heading strong { color: var(--green); font-size: 11px; }
+    .person-card { background: white; border-radius: 17px; padding: 11px 12px 10px; margin: 8px 0; }
+    .person-row { display: flex; align-items: center; gap: 9px; }
+    .avatar { width: 34px; height: 34px; flex: 0 0 auto; border-radius: 50%; background: #f0e7d5; display: grid; place-items: center; color: var(--green); }
+    .person-name { font-size: 12px; font-weight: 650; }
+    .drink-line { font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .badge { padding: 4px 8px; border-radius: 20px; background: var(--green-soft); color: var(--green); font-size: 9px; font-weight: 650; white-space: nowrap; }
+    .badge.warn { background: #fbf0df; color: #94602c; }
+    .badge.neutral { background: #f3f2ed; color: #72766f; }
+    .outline-button, .solid-button, .soft-button {
+      min-height: 44px; border-radius: 24px; font-weight: 650; font-size: 13px;
+    }
+    .outline-button { width: 100%; border: 1px solid #759786; background: var(--green-soft); color: var(--green); margin-top: 7px; }
+    .soft-button { border: 1px solid var(--line); background: white; color: var(--green); padding: 0 18px; }
+    .solid-button { border: 0; background: var(--green); color: white; padding: 0 18px; }
+    .wide { width: 100%; }
+    .fine-print { color: var(--muted); font-size: 9px; line-height: 1.45; margin: 10px 0 12px; }
+    .bottom-action { padding: 0 20px 12px; }
+    .bottom-action .solid-button { min-height: 46px; }
+    .tabbar { flex: 0 0 auto; display: flex; justify-content: space-around; padding: 9px 7px 5px; border-top: 1px solid #f0eee8; background: #fff; }
+    .tabbar[hidden], .bottom-action[hidden] { display: none; }
+    .tab { border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 56px; color: #858a83; font-size: 9px; }
+    .tab-icon { width: 21px; height: 21px; display: block; }
+    .tab.active { color: var(--green); }
+    .modal-backdrop { position: absolute; inset: 0; z-index: 4; background: #15211bb0; display: grid; place-items: center; padding: 22px; }
+    .modal { width: 100%; max-height: 90%; overflow-y: auto; border-radius: 21px; background: white; padding: 20px; box-shadow: 0 16px 44px #0003; }
+    .modal h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 18px; }
+    .modal-intro { color: var(--muted); font-size: 11px; margin: 12px 0; }
+    .tag-person { padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .tag-person:last-of-type { border-bottom: 0; }
+    .tag-person-head { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 650; }
+    .tag-person-head .badge { margin-left: auto; }
+    .tag-options { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+    .tag-option { border: 1px solid var(--line); background: var(--cream); color: var(--muted); border-radius: 15px; padding: 5px 10px; font-size: 10px; }
+    .tag-option.selected { color: white; background: var(--green); border-color: var(--green); }
+    .modal-buttons { display: flex; gap: 8px; margin-top: 12px; }
+    .modal-buttons > button { flex: 1; }
+    .summary-card, .profile-card, .customize-card { background: white; border-radius: 17px; padding: 13px; margin: 10px 0; }
+    .summary-person { padding: 0 0 10px; margin-bottom: 9px; border-bottom: 1px solid var(--line); }
+    .summary-person:last-child { border: 0; margin-bottom: 0; padding-bottom: 0; }
+    .summary-person-top { display: flex; align-items: center; gap: 7px; }
+    .summary-person-top .badge { margin-left: auto; }
+    .summary-drink { display: flex; justify-content: space-between; font-size: 13px; margin: 6px 0; }
+    .summary-detail { color: var(--muted); font-size: 10px; }
+    .recipe { display: inline-block; margin-top: 5px; padding: 4px 8px; border-radius: 12px; color: var(--green); background: var(--green-soft); font-size: 9px; font-weight: 650; }
+    .info-note { display: flex; gap: 8px; color: var(--muted); font-size: 10px; line-height: 1.4; margin: 10px 0; }
+    .info-note span:first-child { color: var(--green); font-size: 16px; }
+    .pickup-row, .payment-row { display: flex; gap: 10px; align-items: center; padding: 5px 0; }
+    .pickup-row .icon, .payment-row .icon { font-size: 18px; color: var(--green); }
+    .pickup-row strong, .payment-row strong { font-size: 11px; }
+    .pickup-row small, .payment-row small { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .price-lines { margin-top: 10px; }
+    .price-line { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; padding: 4px 0; }
+    .price-line.total { color: #29332d; border-top: 1px solid var(--line); margin-top: 3px; padding-top: 8px; font-size: 15px; font-weight: 700; }
+    .cancel-link { display: block; margin: 8px auto 2px; border: 0; background: transparent; color: var(--green); font-weight: 650; font-size: 11px; }
+    .profile-hero { display: flex; align-items: center; gap: 12px; margin: 10px 0 16px; }
+    .profile-initials { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: #f0e7d5; color: var(--green); }
+    .profile-hero strong { display: block; font-size: 16px; }
+    .profile-hero small { color: var(--muted); font-size: 11px; display: block; margin-top: 4px; }
+    .profile-callout { border-radius: 16px; background: var(--green-soft); padding: 13px; margin-bottom: 17px; color: var(--green); font-size: 11px; }
+    .profile-callout small { color: var(--muted); display: block; margin-top: 7px; }
+    .restriction-title { font-size: 14px; margin: 0 0 8px; }
+    .restriction { width: 100%; display: flex; align-items: center; gap: 9px; padding: 10px 12px; margin: 7px 0; border-radius: 11px; border: 1px solid var(--line); background: white; text-align: left; font-size: 12px; }
+    .restriction.selected { border-color: #729180; background: var(--green-soft); font-weight: 650; }
+    .restriction span:first-child { color: var(--green); font-size: 17px; }
+    .tip-list { background: white; border-radius: 16px; padding: 12px; margin-top: 12px; color: var(--green); font-size: 11px; }
+    .tip-list p { margin: 0; padding: 2px 0 9px; }
+    .tip-list p + p { border-top: 1px solid var(--line); padding-top: 9px; }
+    .tip-list small { display: block; color: var(--muted); font-size: 10px; line-height: 1.4; margin: 4px 0 0 25px; }
+    .bottom-spacer { height: 7px; }
+    .customize-drink { display: flex; align-items: center; gap: 12px; }
+    .drink-art { width: 76px; height: 76px; flex: 0 0 auto; display: block; border-radius: 16px; overflow: hidden; }
+    .drink-art svg { width: 100%; height: 100%; display: block; }
+    .drink-thumb { width: 58px; height: 58px; flex: 0 0 auto; border-radius: 14px; overflow: hidden; }
+    .drink-thumb svg { display: block; width: 100%; height: 100%; }
+    .menu-drink { flex: 1; min-width: 0; text-align: left; border: 0; background: transparent; display: flex; align-items: center; gap: 11px; }
+    .menu-drink-info { min-width: 0; }
+    .menu-drink-info strong { display: block; font-size: 13px; }
+    .menu-drink-info small { display: block; color: var(--muted); font-size: 10px; margin-top: 4px; }
+    .customize-drink h2 { font-size: 18px; }
+    .customize-drink p { color: var(--muted); font-size: 10px; margin: 5px 0 0; }
+    .price-highlight { color: var(--green); font-size: 14px; font-weight: 700; margin-top: 6px; }
+    .form-label { display: block; font-size: 12px; font-weight: 650; margin: 16px 0 7px; }
+    .choice-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .choice { border: 1px solid var(--line); background: white; padding: 8px 12px; border-radius: 17px; font-size: 10px; }
+    .choice.active { border-color: var(--green); background: var(--green-soft); color: var(--green); font-weight: 650; }
+    .conflict { position: absolute; z-index: 5; inset: 0; padding: 20px; display: grid; place-items: center; background: #20302bb0; }
+    .conflict-card { background: white; padding: 20px; border-radius: 21px; width: 100%; box-shadow: 0 16px 44px #0004; }
+    .warning { width: 40px; height: 40px; border-radius: 50%; background: #fbf0df; color: #9a6a2d; display: grid; place-items: center; font-size: 20px; margin-bottom: 13px; }
+    .conflict-card h2 { margin: 0 0 10px; font-size: 19px; }
+    .conflict-card p { font-size: 11px; line-height: 1.45; color: #59645c; }
+    .conflict-card .soft-button, .conflict-card .solid-button { width: 100%; margin-top: 7px; }
+    .toast { position: absolute; z-index: 8; bottom: 75px; left: 20px; right: 20px; text-align: center; background: #26332d; color: white; padding: 12px; border-radius: 13px; font-size: 12px; box-shadow: 0 5px 18px #0004; }
+    @media (max-height: 690px) {
+      .content { padding-top: 12px; }
+      .person-card { padding-top: 8px; padding-bottom: 7px; margin: 6px 0; }
+      .outline-button { min-height: 38px; }
+      .fine-print { margin: 7px 0; }
+      .bottom-action { padding-bottom: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="Coffee shop group ordering app">
+    <div class="content" id="content"></div>
+    <div class="bottom-action" id="bottom-action"></div>
+    <nav class="tabbar" aria-label="Main navigation">
+      <button class="tab active" data-tab="Home">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 10 8.5-7 8.5 7v10a1 1 0 0 1-1 1h-5.2v-6.5h-4.6V21H4.5a1 1 0 0 1-1-1z"/></svg>Home
+      </button>
+      <button class="tab" data-tab="Menu">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9h12v7a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM17 11h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 2v4M16 3v3"/></svg>Menu
+      </button>
+      <button class="tab" data-tab="Orders">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.2-1.5-1.8 1.5-2-1.5-2 1.5-1.8-1.5L6 20.5z"/><path d="M9 8h6M9 16h6"/><path d="M13.5 10.5c-.4-.6-1-.9-1.8-.9a1.5 1.5 0 0 0 0 3h.6a1.5 1.5 0 0 1 0 3c-.8 0-1.5-.4-1.9-1M12 8.7v.8m0 6.1v.8"/></svg>Orders
+      </button>
+      <button class="tab" data-tab="Profile">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7.5" r="3.5"/><path d="M4.5 21v-1.5a7.5 7.5 0 0 1 15 0V21"/></svg>Profile
+      </button>
+    </nav>
+    <div id="overlay"></div>
+  </main>
+  <script>
+    const names = ["Person A", "Person B", "Person C"];
+    const tags = ["Vegan", "Gluten-free", "Nut allergy", "None"];
+    const people = [
+      { name: names[0], initial: "A", tag: "Vegan", drink: "Caffè Latte", size: "Grande", temp: "Hot", milk: "Oat milk", syrup: "No syrup", whip: "Dairy whip", price: 5.45 },
+      { name: names[1], initial: "B", tag: "Nut allergy", drink: "Cold Brew", size: "Grande", temp: "Iced", milk: "Vanilla syrup", syrup: "No hazelnut", whip: "No topping", price: 4.25 },
+      { name: names[2], initial: "C", tag: "None", drink: "Americano", size: "Grande", temp: "Hot", milk: "No milk", syrup: "No syrup", whip: "No topping", price: 3.45 }
+    ];
+    let screen = "Login";
+    let activeTab = "Home";
+    let editingPerson = 0;
+    let dietaryDraft = people.map(person => person.tag);
+    let profileTags = ["Vegan", "Nut allergy"];
+    let selectedProfileTags = [...profileTags];
+    let drinkChoices = { size: "Grande", temperature: "Hot", milk: "Oat milk" };
+    let groupFlow = false;
+    let showConflict = false;
+    let toastTimer;
+
+    const money = value => "$" + value.toFixed(2);
+    const icon = (symbol, cls = "") => `<span class="${cls}">${symbol}</span>`;
+    const header = (title, subtitle = "", back = "Home") => `
+      <div class="topline">
+        <button class="back" aria-label="Back" data-action="back">‹</button>
+        <div><h1>${title}</h1>${subtitle ? `<div class="subtitle">${subtitle}</div>` : ""}</div>
+      </div>`;
+    function tagBadge(tag) {
+      const cls = tag === "Vegan" ? "" : tag === "Nut allergy" ? "warn" : "neutral";
+      return `<span class="badge ${cls}">${tag}</span>`;
+    }
+    function renderLogin() {
+      return `<section class="login-screen">
+        <div class="login-brand" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h12v7a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM17 11h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 2v4M16 3v3"/></svg></div>
+        <h1>Welcome back</h1>
+        <p class="login-intro">Sign in to order your favorite drinks with your group.</p>
+        <form class="login-form" id="login-form">
+          <label class="login-field">Email address<input name="email" type="email" placeholder="you@example.com" autocomplete="email" required></label>
+          <label class="login-field">Password<input name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required></label>
+          <p class="login-error" id="login-error" role="alert"></p>
+          <button class="solid-button wide login-submit" type="submit">Sign in</button>
+        </form>
+      </section>`;
+    }
+    function drinkArtwork(drink, className = "drink-thumb") {
+      const isColdBrew = drink.includes("Cold Brew");
+      const isAmericano = drink.includes("Americano");
+      const slug = isColdBrew ? "cold" : isAmericano ? "americano" : "latte";
+      const background = isColdBrew ? "#e7eee7" : isAmericano ? "#eee5d4" : "#e9efe8";
+      const beverage = isColdBrew ? "#80513a" : "#765039";
+      const vessel = isAmericano
+        ? `<ellipse cx="48" cy="75" rx="30" ry="6" fill="#cbbca4"/><path d="M26 37h39v15a18 18 0 0 1-18 18h-3a18 18 0 0 1-18-18z" fill="#fffdf8" stroke="#d6d1c5" stroke-width="2"/><path d="M65 41h5a9 9 0 0 1 0 18h-8" fill="none" stroke="#d6d1c5" stroke-width="4"/><path d="M30 43h31v9a14 14 0 0 1-14 14h-3a14 14 0 0 1-14-14z" fill="${beverage}"/><path d="M37 32q-4-5 0-10m10 10q-4-5 0-10m10 10q-4-5 0-10" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`
+        : isColdBrew
+          ? `<path d="M34 31h29l-4 43a5 5 0 0 1-5 4H43a5 5 0 0 1-5-4z" fill="#fff" fill-opacity=".72" stroke="#fff" stroke-width="2"/><path d="M37 47h23l-2.5 25H42z" fill="${beverage}"/><path d="m42 51 8-5 7 7-8 5zm2 12 6-5 7 6-6 5z" fill="#e9d8bd" stroke="#f7eee0" stroke-width="1.5"/><path d="m48 29 12-18" stroke="#205d48" stroke-width="3" stroke-linecap="round"/><path d="M31 30h35" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`
+          : `<path d="M32 30h34l-4 45a5 5 0 0 1-5 5H41a5 5 0 0 1-5-5z" fill="#fffdf8" stroke="#d8d3c9" stroke-width="2"/><path d="M35 38h28l-2 20H37z" fill="${beverage}"/><path d="M37 58h24l-1 15H39z" fill="#205d48"/><path d="M36 28h27M40 23h20" stroke="#d8d3c9" stroke-width="3" stroke-linecap="round"/><path d="M42 47c4-5 12-5 16 0-4 5-12 5-16 0z" fill="#f1e5cf" opacity=".9"/>`;
+      return `<div class="${className}" role="img" aria-label="${drink} illustration"><svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="96" height="96" rx="18" fill="${background}"/><circle cx="76" cy="19" r="12" fill="#fff" opacity=".36"/><ellipse cx="48" cy="83" rx="24" ry="4" fill="#2d372e" opacity=".12"/>${vessel}</svg></div>`;
+    }
+    function renderHome() {
+      const drinks = people.filter(person => person.added).length;
+      return `${header("Group order", "Starbucks · UTD Student Union")}
+        <div class="crew-banner">${icon("♧", "banner-icon")}<div><strong>Your crew</strong><p>3 people · One order, one easy pickup.</p></div></div>
+        <button class="row-button" data-action="open-tags"><span class="tag-symbol">◆</span><span><strong>Set dietary tags</strong><small>Vegan · Nut allergy · No restrictions</small></span><span class="arrow">›</span></button>
+        <div class="section-heading"><span>Group members</span><strong>3 people · ${drinks} drinks</strong></div>
+        ${people.map((person, index) => `<section class="person-card">
+          <div class="person-row"><span class="avatar">♙</span><div><div class="person-name">${person.name} ${tagBadge(person.tag)}</div><div class="drink-line">${person.drink} · ${person.size} · ${person.milk}</div></div></div>
+          <button class="outline-button" data-action="customize" data-person="${index}">☷ &nbsp;Customize drink</button>
+        </section>`).join("")}
+        <p class="fine-print">Dietary labels are guidance, not a guarantee of allergen safety. Confirm ingredients and cross-contact risks with a barista.</p>`;
+    }
+    function renderProfile() {
+      const options = ["Vegan", "Nut allergy", "Lactose intolerance", "None"];
+      return `${header("Dietary profile", "A little care with every cup")}
+        <div class="profile-hero"><div class="profile-initials">YO</div><div><strong>Your preferences</strong><small>Used for individual &amp; group orders</small></div></div>
+        <div class="profile-callout">♧ &nbsp;We’ll flag choices that may conflict.<small>Your profile helps you choose.</small></div>
+        <p class="restriction-title">Dietary restrictions</p>
+        ${options.map(tag => `<button class="restriction ${selectedProfileTags.includes(tag) ? "selected" : ""}" data-action="profile-tag" data-tag="${tag}"><span>${selectedProfileTags.includes(tag) ? "☑" : "◯"}</span>${tag}</button>`).join("")}
+        <div class="tip-list"><p>♧ &nbsp;Vegan — dairy &amp; whip prompt<small>When ordering, you'll be prompted to switch whipped cream to vegan whip and select a plant-based milk.</small></p><p>ⓘ &nbsp;Nut allergy — hazelnut warning<small>Hazelnut and other nut modifiers are flagged in group orders.</small></p></div>`;
+    }
+    function renderSummary() {
+      const items = people.filter(person => person.added);
+      const subtotal = items.reduce((sum, person) => sum + person.price, 0);
+      const tax = subtotal * .0825;
+      return `${header("Group summary", `${items.length} members · ${items.length} drinks · One pickup`)}
+        <section class="summary-card">${items.map(person => `<div class="summary-person">
+          <div class="summary-person-top"><span style="color:var(--green)">♙</span><span class="person-name">${person.name}</span>${tagBadge(person.tag)}</div>
+          <div class="summary-drink"><span>1 × ${person.drink}</span><span>${money(person.price)}</span></div>
+          <div class="summary-detail">${person.size} · ${person.temp} · ${person.milk} · ${person.whip}</div>
+        </div>`).join("")}</section>
+        <p class="info-note"><span>ⓘ</span><span>Dietary labels are not a guarantee of allergen safety. Shared equipment may cause cross-contact. Confirm ingredients and preparation with a barista.</span></p>
+        <section class="summary-card"><div class="pickup-row"><span class="icon">♧</span><div><strong>Starbucks UTD</strong><small>Student Union · Pickup counter</small><small style="color:var(--green);font-weight:650">Ready in 10 min</small></div></div><div class="payment-row" style="border-top:1px solid var(--line);margin-top:9px;padding-top:10px"><span class="icon">▱</span><div><strong>Visa ending 1234</strong><small>Payment method</small></div></div></section>
+        <section class="summary-card price-lines"><div class="price-line"><span>Subtotal · ${items.length} drinks</span><strong>${money(subtotal)}</strong></div><div class="price-line"><span>Estimated tax</span><strong>${money(tax)}</strong></div><div class="price-line total"><span>Total</span><strong>${money(subtotal + tax)}</strong></div></section>
+        <button class="solid-button wide" data-action="pay">Pay &amp; submit group · ${money(subtotal + tax)}</button>
+        <button class="cancel-link" data-action="home">Cancel</button><div class="bottom-spacer"></div>`;
+    }
+    function renderCustomize() {
+      const person = people[editingPerson];
+      const isVegan = person.tag === "Vegan";
+      const sizes = ["Tall", "Grande", "Venti"];
+      const temperatures = ["Hot", "Iced"];
+      const milks = ["Oat milk", "2% milk", "Almond milk"];
+      return `${header("Customize", "Starbucks · UTD Student Union")}
+        <section class="customize-card"><div class="customize-drink">${drinkArtwork(person.drink, "drink-art")}<div><h2>${person.drink}</h2><div class="price-highlight">${money(person.price)}</div><p>${person.size} · ${person.temp} · ${person.milk} · ${person.whip}</p></div></div></section>
+        <section class="customize-card">
+        <label class="form-label">Size</label><div class="choice-row">${sizes.map(item => `<button class="choice ${drinkChoices.size === item ? "active" : ""}" data-action="choice" data-field="size" data-value="${item}">${item}</button>`).join("")}</div>
+        <label class="form-label">Temperature</label><div class="choice-row">${temperatures.map(item => `<button class="choice ${drinkChoices.temperature === item ? "active" : ""}" data-action="choice" data-field="temperature" data-value="${item}">${item}</button>`).join("")}</div>
+        <label class="form-label">Milk</label><div class="choice-row">${milks.map(item => `<button class="choice ${drinkChoices.milk === item ? "active" : ""}" data-action="choice" data-field="milk" data-value="${item}">${item}</button>`).join("")}</div>
+        ${isVegan ? `<div class="info-note" style="margin-top:13px"><span>ⓘ</span><span>Vegan preference: choose plant-based milk and vegan whip. Please confirm ingredients with the barista.</span></div>` : ""}
+        </section>`;
+    }
+    function renderOrderSummary() {
+      const person = people[editingPerson];
+      return `${header("Order summary", `${person.drink} · Ready to review`)}
+        <section class="summary-card"><div class="summary-drink"><strong>☕ &nbsp;${person.drink}</strong><strong>${money(person.price)}</strong></div><div class="summary-detail">${person.drink} · Quantity 1</div>
+        <div class="summary-detail" style="margin-top:10px"><strong>Size</strong> &nbsp;${person.size} · 16 fl oz<br><strong>Temperature</strong> &nbsp;${person.temp}<br><strong>Milk</strong> &nbsp;${person.milk}<br><strong>Topping</strong> &nbsp;${person.whip}</div>
+        <div class="summary-detail" style="margin-top:9px">Dietary information is not a guarantee of allergen safety. Confirm ingredients with a barista.</div></section>
+        <section class="summary-card"><div class="pickup-row"><span class="icon">♧</span><div><strong>Starbucks UTD</strong><small>Student Union · Pickup counter</small><small style="color:var(--green);font-weight:650">Ready in 10 min</small></div></div><div class="payment-row" style="border-top:1px solid var(--line);margin-top:9px;padding-top:10px"><span class="icon">▱</span><div><strong>Visa ending 1234</strong><small>Payment method</small></div></div></section>
+        <section class="summary-card price-lines"><div class="price-line"><span>Subtotal</span><strong>${money(person.price)}</strong></div><div class="price-line"><span>Estimated tax</span><strong>${money(person.price * .0825)}</strong></div><div class="price-line total"><span>Total</span><strong>${money(person.price * 1.0825)}</strong></div></section>`;
+    }
+    function render() {
+      const content = document.querySelector("#content");
+      const action = document.querySelector("#bottom-action");
+      const isLogin = screen === "Login";
+      document.querySelector(".tabbar").hidden = isLogin;
+      action.hidden = isLogin;
+      if (isLogin) {
+        content.innerHTML = renderLogin();
+      } else if (screen === "Home") {
+        content.innerHTML = renderHome();
+        action.innerHTML = `<button class="solid-button wide" data-action="start">➜ &nbsp;Start with Person A</button>`;
+      } else if (screen === "Profile") {
+        content.innerHTML = renderProfile();
+        action.innerHTML = `<button class="solid-button wide" data-action="save-profile">Save preferences</button>`;
+      } else if (screen === "Summary") {
+        content.innerHTML = renderSummary();
+        action.innerHTML = "";
+      } else if (screen === "Customize") {
+        content.innerHTML = renderCustomize();
+        action.innerHTML = `<button class="solid-button wide" data-action="add-drink">▣ &nbsp;Add to cart · ${money(people[editingPerson].price)}</button>`;
+      } else if (screen === "OrderSummary") {
+        content.innerHTML = renderOrderSummary();
+        const nextPerson = groupFlow ? people.findIndex(item => !item.added) : -1;
+        const nextAction = nextPerson >= 0
+          ? `<button class="solid-button wide" data-action="next-person" data-person="${nextPerson}">Continue with ${people[nextPerson].name}</button>`
+          : groupFlow
+            ? `<button class="solid-button wide" data-action="review-group">Review group order</button>`
+            : `<button class="solid-button wide" data-action="submit-single">Pay &amp; submit · ${money(people[editingPerson].price * 1.0825)}</button>`;
+        action.innerHTML = `${nextAction}<button class="cancel-link" data-action="home">Cancel</button>`;
+      } else if (screen === "Menu") {
+        content.innerHTML = `${header("Menu", "Choose a drink for your group")}
+          ${people.map((person, index) => `<section class="person-card"><div style="display:flex;align-items:center;gap:8px">${drinkArtwork(person.drink)}<button class="menu-drink" data-action="customize" data-person="${index}"><span class="menu-drink-info"><strong>${person.drink}</strong><small>From ${money(person.price)} · ${person.temp}</small></span></button><button class="soft-button" data-action="customize" data-person="${index}">Choose</button></div></section>`).join("")}`;
+        action.innerHTML = "";
+      }
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.tab === activeTab);
+      });
+    }
+    document.addEventListener("submit", event => {
+      if (event.target.id !== "login-form") return;
+      event.preventDefault();
+      const form = event.target;
+      if (!form.reportValidity()) return;
+      screen = "Home";
+      activeTab = "Home";
+      render();
+    });
+    function renderTagsModal() {
+      document.querySelector("#overlay").innerHTML = `      <div class="modal-backdrop" data-action="close-overlay"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="tags-title">
+        <h2 id="tags-title"><span style="color:var(--green)">♙</span>Set dietary tags</h2><p class="modal-intro">Checks apply to each person's drink.</p>
+        ${people.map((person, index) => `<div class="tag-person"><div class="tag-person-head"><span class="avatar" style="width:28px;height:28px">${person.initial}</span>${person.name}${tagBadge(dietaryDraft[index])}</div><div class="tag-options">${tags.map(tag => `<button class="tag-option ${dietaryDraft[index] === tag ? "selected" : ""}" data-action="set-tag" data-person="${index}" data-tag="${tag}">${tag}</button>`).join("")}</div></div>`).join("")}
+        <p class="fine-print">Ask your group member before selecting. These preferences apply to their drink only.</p>
+        <div class="modal-buttons"><button class="soft-button" data-action="close-overlay">Cancel</button><button class="solid-button" data-action="confirm-tags">Confirm tags</button></div>
+        </section></div>`;
+    }
+    function toast(message) {
+      clearTimeout(toastTimer);
+      document.querySelector("#overlay").innerHTML = `<div class="toast" role="status">${message}</div>`;
+      toastTimer = setTimeout(() => { document.querySelector("#overlay").innerHTML = ""; }, 2400);
+    }
+    document.addEventListener("click", event => {
+      const tab = event.target.closest("[data-tab]");
+      if (tab) {
+        activeTab = tab.dataset.tab;
+        screen = activeTab === "Orders" ? "Summary" : activeTab;
+        if (activeTab === "Menu") screen = "Menu";
+        if (activeTab === "Profile") selectedProfileTags = [...profileTags];
+        render();
+        return;
+      }
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      const { action, person, tag, field, value } = button.dataset;
+      if (action === "open-tags") { dietaryDraft = people.map(item => item.tag); renderTagsModal(); }
+      if (action === "close-overlay") { document.querySelector("#overlay").innerHTML = ""; }
+      if (action === "set-tag") { dietaryDraft[Number(person)] = tag; renderTagsModal(); }
+      if (action === "confirm-tags") {
+        people.forEach((item, index) => { item.tag = dietaryDraft[index]; });
+        document.querySelector("#overlay").innerHTML = ""; render();
+      }
+      if (action === "customize") {
+        editingPerson = Number(person);
+        groupFlow = false;
+        const item = people[editingPerson];
+        drinkChoices = { size: item.size, temperature: item.temp, milk: item.milk };
+        screen = "Customize"; render();
+      }
+      if (action === "choice") { drinkChoices[field] = value; render(); }
+      if (action === "start") {
+        groupFlow = true;
+        editingPerson = people.findIndex(item => !item.added);
+        if (editingPerson < 0) { screen = "Summary"; activeTab = "Orders"; }
+        else { screen = "Customize"; drinkChoices = { size: people[editingPerson].size, temperature: people[editingPerson].temp, milk: people[editingPerson].milk }; }
+        render();
+      }
+      if (action === "add-drink") {
+        const item = people[editingPerson];
+        item.size = drinkChoices.size; item.temp = drinkChoices.temperature; item.milk = drinkChoices.milk; item.added = true;
+        if (item.tag === "Vegan" && item.whip !== "Vegan whip") { showConflict = true; renderConflict(); return; }
+        screen = "OrderSummary"; render();
+      }
+      if (action === "resolve-conflict") {
+        const item = people[editingPerson];
+        if (button.dataset.resolve === "vegan") item.whip = "Vegan whip";
+        showConflict = false; document.querySelector("#overlay").innerHTML = "";
+        screen = "OrderSummary"; render();
+      }
+      if (action === "next-person") {
+        editingPerson = Number(person);
+        const item = people[editingPerson];
+        drinkChoices = { size: item.size, temperature: item.temp, milk: item.milk };
+        screen = "Customize"; render();
+      }
+      if (action === "review-group") { screen = "Summary"; activeTab = "Orders"; render(); }
+      if (action === "back") { screen = screen === "OrderSummary" ? "Customize" : "Home"; activeTab = screen === "Home" ? "Home" : activeTab; render(); }
+      if (action === "home") { screen = "Home"; activeTab = "Home"; render(); }
+      if (action === "profile-tag") {
+        selectedProfileTags = selectedProfileTags.includes(tag) ? selectedProfileTags.filter(item => item !== tag) : [...selectedProfileTags, tag];
+        render();
+      }
+      if (action === "save-profile") {
+        profileTags = [...selectedProfileTags];
+        screen = "Home"; activeTab = "Home"; render(); toast("Preferences saved");
+      }
+      if (action === "pay" || action === "submit-single") {
+        people.forEach(item => { item.added = false; });
+        screen = "Home"; activeTab = "Home"; render(); toast("Order submitted");
+      }
+    });
+    function renderConflict() {
+      document.querySelector("#overlay").innerHTML = `<div class="conflict" role="alertdialog" aria-modal="true"><div class="conflict-card"><div class="warning">⚠</div><h2>Switch to vegan whip?</h2><span class="badge">Vegan preference</span><p>You selected Oat Milk. Your latte currently includes dairy whipped cream by default, which conflicts with your Vegan dietary preference.</p><p style="color:var(--muted)">Would you like to switch to vegan whip?</p><button class="solid-button" data-action="resolve-conflict" data-resolve="vegan">Switch to Vegan Whip</button><button class="soft-button" data-action="resolve-conflict" data-resolve="keep">Keep dairy whip</button></div></div>`;
+    }
+    render();
+  </script>
+</body>
+</html>
