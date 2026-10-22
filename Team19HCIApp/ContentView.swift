@@ -29,100 +29,19 @@ private struct DrinkArtwork: View {
     let drinkName: String
     var size: CGFloat
 
-    private var isColdBrew: Bool { drinkName.contains("Cold Brew") }
-    private var isAmericano: Bool { drinkName.contains("Americano") }
-    private var drinkColor: Color {
-        isColdBrew ? Color(red: 0.42, green: 0.25, blue: 0.16) : Color(red: 0.46, green: 0.29, blue: 0.17)
+    private var imageName: String {
+        if drinkName.contains("Cold Brew") { return "ColdBrew" }
+        if drinkName.contains("Americano") { return "Americano" }
+        return "Latte"
     }
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: size * 0.2)
-                .fill(isColdBrew ? Color(red: 0.91, green: 0.94, blue: 0.90) :
-                    isAmericano ? Color(red: 0.94, green: 0.90, blue: 0.82) : CoffeeStyle.greenSoft)
-
-            Circle()
-                .fill(.white.opacity(0.35))
-                .frame(width: size * 0.24)
-                .offset(x: size * 0.3, y: -size * 0.3)
-
-            if isAmericano {
-                Ellipse()
-                    .fill(Color(red: 0.80, green: 0.74, blue: 0.64))
-                    .frame(width: size * 0.68, height: size * 0.14)
-                    .offset(y: size * 0.31)
-                Circle()
-                    .stroke(Color.white, lineWidth: size * 0.09)
-                    .frame(width: size * 0.28)
-                    .offset(x: size * 0.25, y: -size * 0.02)
-                VStack(spacing: 0) {
-                    Ellipse().fill(Color.white).frame(width: size * 0.48, height: size * 0.12)
-                    RoundedRectangle(cornerRadius: size * 0.12)
-                        .fill(Color.white)
-                        .frame(width: size * 0.46, height: size * 0.34)
-                        .overlay(alignment: .top) {
-                            Ellipse().fill(drinkColor).frame(height: size * 0.09)
-                        }
-                }
-                .offset(x: -size * 0.05, y: -size * 0.02)
-            } else if isColdBrew {
-                Capsule().fill(CoffeeStyle.green)
-                    .frame(width: size * 0.045, height: size * 0.44)
-                    .rotationEffect(.degrees(34))
-                    .offset(x: size * 0.12, y: -size * 0.2)
-                VStack(spacing: 0) {
-                    Capsule().fill(.white.opacity(0.9)).frame(width: size * 0.47, height: size * 0.07)
-                    UnevenRoundedRectangle(
-                        topLeadingRadius: size * 0.03,
-                        bottomLeadingRadius: size * 0.12,
-                        bottomTrailingRadius: size * 0.12,
-                        topTrailingRadius: size * 0.03
-                    )
-                    .fill(drinkColor.opacity(0.82))
-                    .frame(width: size * 0.39, height: size * 0.5)
-                    .overlay {
-                        VStack {
-                            HStack(spacing: size * 0.04) {
-                                iceCube(size * 0.12)
-                                iceCube(size * 0.14)
-                            }
-                            iceCube(size * 0.12).offset(x: size * 0.08)
-                        }
-                        .offset(y: -size * 0.08)
-                    }
-                }
-                .offset(y: size * 0.03)
-            } else {
-                VStack(spacing: 0) {
-                    Capsule().fill(Color(red: 0.82, green: 0.80, blue: 0.75))
-                        .frame(width: size * 0.44, height: size * 0.07)
-                    RoundedRectangle(cornerRadius: size * 0.08)
-                        .fill(.white)
-                        .frame(width: size * 0.4, height: size * 0.51)
-                        .overlay(alignment: .top) {
-                            VStack(spacing: 0) {
-                                Rectangle().fill(drinkColor).frame(height: size * 0.18)
-                                RoundedRectangle(cornerRadius: size * 0.04)
-                                    .fill(CoffeeStyle.green)
-                                    .frame(height: size * 0.2)
-                            }
-                            .padding(.top, size * 0.05)
-                            .padding(.horizontal, size * 0.02)
-                        }
-                }
-                .offset(y: size * 0.03)
-            }
-        }
+        Image(imageName)
+        .resizable()
+        .scaledToFill()
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size * 0.2))
         .accessibilityLabel("\(drinkName) illustration")
-    }
-
-    private func iceCube(_ dimension: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: dimension * 0.2)
-            .fill(Color(red: 0.93, green: 0.88, blue: 0.77))
-            .frame(width: dimension, height: dimension)
-            .overlay(RoundedRectangle(cornerRadius: dimension * 0.2).stroke(.white.opacity(0.8), lineWidth: 1))
     }
 }
 

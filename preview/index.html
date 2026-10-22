@@ -134,9 +134,9 @@
     .bottom-spacer { height: 7px; }
     .customize-drink { display: flex; align-items: center; gap: 12px; }
     .drink-art { width: 76px; height: 76px; flex: 0 0 auto; display: block; border-radius: 16px; overflow: hidden; }
-    .drink-art svg { width: 100%; height: 100%; display: block; }
+    .drink-art img { width: 100%; height: 100%; display: block; object-fit: cover; }
     .drink-thumb { width: 58px; height: 58px; flex: 0 0 auto; border-radius: 14px; overflow: hidden; }
-    .drink-thumb svg { display: block; width: 100%; height: 100%; }
+    .drink-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
     .menu-drink { flex: 1; min-width: 0; text-align: left; border: 0; background: transparent; display: flex; align-items: center; gap: 11px; }
     .menu-drink-info { min-width: 0; }
     .menu-drink-info strong { display: block; font-size: 13px; }
@@ -228,17 +228,12 @@
       </section>`;
     }
     function drinkArtwork(drink, className = "drink-thumb") {
-      const isColdBrew = drink.includes("Cold Brew");
-      const isAmericano = drink.includes("Americano");
-      const slug = isColdBrew ? "cold" : isAmericano ? "americano" : "latte";
-      const background = isColdBrew ? "#e7eee7" : isAmericano ? "#eee5d4" : "#e9efe8";
-      const beverage = isColdBrew ? "#80513a" : "#765039";
-      const vessel = isAmericano
-        ? `<ellipse cx="48" cy="75" rx="30" ry="6" fill="#cbbca4"/><path d="M26 37h39v15a18 18 0 0 1-18 18h-3a18 18 0 0 1-18-18z" fill="#fffdf8" stroke="#d6d1c5" stroke-width="2"/><path d="M65 41h5a9 9 0 0 1 0 18h-8" fill="none" stroke="#d6d1c5" stroke-width="4"/><path d="M30 43h31v9a14 14 0 0 1-14 14h-3a14 14 0 0 1-14-14z" fill="${beverage}"/><path d="M37 32q-4-5 0-10m10 10q-4-5 0-10m10 10q-4-5 0-10" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`
-        : isColdBrew
-          ? `<path d="M34 31h29l-4 43a5 5 0 0 1-5 4H43a5 5 0 0 1-5-4z" fill="#fff" fill-opacity=".72" stroke="#fff" stroke-width="2"/><path d="M37 47h23l-2.5 25H42z" fill="${beverage}"/><path d="m42 51 8-5 7 7-8 5zm2 12 6-5 7 6-6 5z" fill="#e9d8bd" stroke="#f7eee0" stroke-width="1.5"/><path d="m48 29 12-18" stroke="#205d48" stroke-width="3" stroke-linecap="round"/><path d="M31 30h35" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`
-          : `<path d="M32 30h34l-4 45a5 5 0 0 1-5 5H41a5 5 0 0 1-5-5z" fill="#fffdf8" stroke="#d8d3c9" stroke-width="2"/><path d="M35 38h28l-2 20H37z" fill="${beverage}"/><path d="M37 58h24l-1 15H39z" fill="#205d48"/><path d="M36 28h27M40 23h20" stroke="#d8d3c9" stroke-width="3" stroke-linecap="round"/><path d="M42 47c4-5 12-5 16 0-4 5-12 5-16 0z" fill="#f1e5cf" opacity=".9"/>`;
-      return `<div class="${className}" role="img" aria-label="${drink} illustration"><svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="96" height="96" rx="18" fill="${background}"/><circle cx="76" cy="19" r="12" fill="#fff" opacity=".36"/><ellipse cx="48" cy="83" rx="24" ry="4" fill="#2d372e" opacity=".12"/>${vessel}</svg></div>`;
+      const image = drink.includes("Cold Brew")
+        ? "cold-brew.png"
+        : drink.includes("Americano")
+          ? "americano.png"
+          : "latte.png";
+      return `<div class="${className}"><img src="images/${image}" alt="${drink}"></div>`;
     }
     function renderHome() {
       const drinks = people.filter(person => person.added).length;
