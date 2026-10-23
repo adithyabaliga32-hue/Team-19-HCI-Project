@@ -6,7 +6,7 @@ ServeFlow is a mobile beverage-ordering interface focused on identifying and res
 
 The central solution is a contextual confirmation prompt. For example, selecting oat milk while dairy whipped cream remains selected prompts the customer to switch to vegan whip. The interface also uses dietary tags to identify conflicting ingredients when ordering for multiple people.
 
-The project demonstrates this solution through three tasks: a quick order from the saved Oat Latte, a moderate drink customization, and a complex group order. The Home screen also links to the restaurant menu, while the Profile tab lets a customer manage dietary preferences. Individual group-member tags drive the group-order conflict checks, and the saved-order badges reflect the Profile selections. Campus Cup and Starbucks are store names within the design. The Figma screens provide the visual reference for ServeFlow’s implementation.
+The project demonstrates this solution through three tasks: a quick order from the saved Oat Latte, a moderate drink customization, and a complex group order. Home lets customers choose Starbucks, Dunkin’, or Dutch Bros, and Menu shows sample drinks for the selected restaurant. Menu items and prices are illustrative prototype data. Some menu art uses images supplied by the user; remaining drink artwork is original prototype illustration. The Profile tab lets a customer manage dietary preferences. Individual group-member tags drive the group-order conflict checks, and the saved-order badges reflect the Profile selections. The Figma screens provide the visual reference for ServeFlow’s implementation.
 
 Requirements and Setup
 - A mobile phone with an internet connection.

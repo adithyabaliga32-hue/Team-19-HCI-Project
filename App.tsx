@@ -40,6 +40,7 @@ type GroupMember = {
   id: number;
   name: string;
   dietaryTag: DietaryTag;
+  restaurant: string;
   drink: string;
   size: string;
   temperature: string;
@@ -49,6 +50,41 @@ type GroupMember = {
   price: number;
   added: boolean;
 };
+
+type RecentOrder = {
+  id: number;
+  items: GroupMember[];
+  placedAt: string;
+};
+
+type MenuDrink = {
+  restaurant: string;
+  drink: string;
+  price: number;
+  temperature: string;
+  milk: string;
+  syrup: string;
+  whip: string;
+};
+
+const restaurants = ["Starbucks", "Dunkin'", "Dutch Bros"];
+
+const menuDrinks: MenuDrink[] = [
+  { restaurant: "Starbucks", drink: "Caffè Latte", price: 5.45, temperature: "Hot", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "Starbucks", drink: "Cold Brew", price: 4.25, temperature: "Iced", milk: "No milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "Starbucks", drink: "Americano", price: 3.45, temperature: "Hot", milk: "No milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "Starbucks", drink: "Caramel Macchiato", price: 5.95, temperature: "Hot", milk: "2% milk", syrup: "Vanilla syrup", whip: "No topping" },
+  { restaurant: "Starbucks", drink: "Caffè Mocha", price: 5.65, temperature: "Hot", milk: "2% milk", syrup: "No syrup", whip: "Dairy whip" },
+  { restaurant: "Starbucks", drink: "Iced Matcha Latte", price: 5.75, temperature: "Iced", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "Dunkin'", drink: "Original Blend Iced Coffee", price: 3.49, temperature: "Iced", milk: "No milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "Dunkin'", drink: "Caramel Craze Latte", price: 5.79, temperature: "Hot", milk: "2% milk", syrup: "Caramel syrup", whip: "Dairy whip" },
+  { restaurant: "Dunkin'", drink: "Frozen Coffee", price: 5.49, temperature: "Iced", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "Dunkin'", drink: "Strawberry Dragonfruit Refresher", price: 4.99, temperature: "Iced", milk: "No milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "Dutch Bros", drink: "Golden Eagle", price: 5.95, temperature: "Iced", milk: "2% milk", syrup: "Vanilla syrup", whip: "Dairy whip" },
+  { restaurant: "Dutch Bros", drink: "Caramelizer", price: 5.75, temperature: "Iced", milk: "2% milk", syrup: "Caramel syrup", whip: "Dairy whip" },
+  { restaurant: "Dutch Bros", drink: "Kicker", price: 5.45, temperature: "Iced", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "Dutch Bros", drink: "Annihilator", price: 5.75, temperature: "Iced", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
+];
 
 const colors = {
   green: "#215C47",
@@ -67,6 +103,7 @@ const initialMembers: GroupMember[] = [
     id: 0,
     name: "Person A",
     dietaryTag: "Vegan",
+    restaurant: "Starbucks",
     drink: "Caffè Latte",
     size: "Grande",
     temperature: "Hot",
@@ -80,6 +117,7 @@ const initialMembers: GroupMember[] = [
     id: 1,
     name: "Person B",
     dietaryTag: "Nut allergy",
+    restaurant: "Starbucks",
     drink: "Cold Brew",
     size: "Grande",
     temperature: "Iced",
@@ -93,6 +131,7 @@ const initialMembers: GroupMember[] = [
     id: 2,
     name: "Person C",
     dietaryTag: "None",
+    restaurant: "Starbucks",
     drink: "Americano",
     size: "Grande",
     temperature: "Hot",
@@ -108,6 +147,7 @@ const savedFavorite: GroupMember = {
   id: -1,
   name: "Your usual",
   dietaryTag: "Vegan",
+  restaurant: "Starbucks",
   drink: "Oat Latte",
   size: "Grande",
   temperature: "Hot",
@@ -168,6 +208,107 @@ function Badge({ tag }: { tag: DietaryTag }) {
 }
 
 function DrinkArtwork({ drink, size }: { drink: string; size: number }) {
+  const photoByDrink: Record<string, number> = {
+    "Caramel Macchiato": require("./assets/drinks/starbucks-caramel-macchiato.png"),
+    "Caffè Mocha": require("./assets/drinks/starbucks-caffe-mocha.png"),
+    "Iced Matcha Latte": require("./assets/drinks/starbucks-iced-matcha-latte.png"),
+    "Golden Eagle": require("./assets/drinks/dutch-bros-golden-eagle.png"),
+    "Caramelizer": require("./assets/drinks/dutch-bros-caramelizer.png"),
+    "Kicker": require("./assets/drinks/dutch-bros-kicker.png"),
+    "Annihilator": require("./assets/drinks/dutch-bros-annihilator.png"),
+    "Strawberry Dragonfruit Refresher": require("./assets/drinks/dunkin-strawberry-dragonfruit-refresher.png"),
+    "Frozen Coffee": require("./assets/drinks/dunkin-frozen-coffee.png"),
+    "Caramel Craze Latte": require("./assets/drinks/dunkin-caramel-craze-latte.png"),
+    "Original Blend Iced Coffee": require("./assets/drinks/dunkin-original-blend-iced-coffee.png"),
+  };
+  const photo = photoByDrink[drink];
+
+  if (photo) {
+    return (
+      <Image
+        accessibilityLabel={`${drink} photo supplied by the user`}
+        source={photo}
+        resizeMode="contain"
+        style={{ width: size, height: size, borderRadius: size * 0.2 }}
+      />
+    );
+  }
+
+  const illustrationColor = drink.includes("Caramel Macchiato")
+    ? "#C98C50"
+    : drink.includes("Mocha")
+      ? "#58382B"
+      : drink.includes("Matcha")
+        ? "#91A85C"
+        : drink.includes("Strawberry Dragonfruit")
+          ? "#D84B74"
+          : drink.includes("Iced Coffee")
+            ? "#68412D"
+            : drink.includes("Caramel Craze")
+              ? "#B87945"
+            : drink.includes("Golden Eagle")
+              ? "#C9944E"
+              : drink.includes("Caramelizer")
+                ? "#A86536"
+                : drink.includes("Kicker")
+                  ? "#704B37"
+                  : drink.includes("Annihilator")
+                    ? "#8B684B"
+                    : null;
+
+  if (illustrationColor) {
+    return (
+      <Svg
+        accessibilityLabel={`${drink} original illustration`}
+        width={size}
+        height={size}
+        viewBox="0 0 100 100"
+      >
+        <Path
+          d="M22 29h56l-6 59q-22 9-44 0z"
+          fill={illustrationColor}
+          stroke="#E8E0D1"
+          strokeWidth={2}
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M22 31q28-13 56 0v9q-28 12-56 0z"
+          fill={drink.includes("Matcha") ? "#B8C98D" : "#F4E6D1"}
+          opacity={drink.includes("Mocha") ? 0.75 : 0.95}
+        />
+        <Path
+          d="M20 29q30-14 60 0l-2 7q-28 11-56 0z"
+          fill="#FFFDF8"
+          stroke="#E8E0D1"
+          strokeWidth={2}
+        />
+        <Path
+          d="M66 28 72 9"
+          fill="none"
+          stroke="#6C4935"
+          strokeWidth={4}
+          strokeLinecap="round"
+        />
+        {drink.includes("Caramel") && (
+          <Path
+            d="M31 44q18 8 0 16t2 16m27-34q-16 9 1 17t-1 17"
+            fill="none"
+            stroke="#F0C27E"
+            strokeWidth={3}
+            strokeLinecap="round"
+            opacity={0.9}
+          />
+        )}
+        {drink.includes("Strawberry Dragonfruit") && (
+          <Path
+            d="m38 54 5-5 5 5-5 5zm21 17 4-4 4 4-4 4z"
+            fill="#FFD2DD"
+          />
+        )}
+      </Svg>
+    );
+  }
+
   const source = drink.includes("Cold Brew")
     ? require("./assets/drinks/cold-brew.png")
     : drink.includes("Americano")
@@ -315,7 +456,10 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRestaurant, setSelectedRestaurant] = useState("Starbucks");
   const [members, setMembers] = useState(initialMembers);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [quickOrderMember, setQuickOrderMember] = useState<GroupMember | null>(null);
   const [profileTags, setProfileTags] = useState<DietaryTag[]>([
     "Vegan",
@@ -372,6 +516,7 @@ export default function App() {
         id,
         name,
         dietaryTag: "None",
+        restaurant: selectedRestaurant,
         drink: "Americano",
         size: "Grande",
         temperature: "Hot",
@@ -417,6 +562,45 @@ export default function App() {
     setSelectedSyrup(member.syrup);
     setSelectedWhip(member.whip);
     setScreen("customize");
+  }
+
+  function chooseDrink(memberIndex: number, item: MenuDrink) {
+    const member = members[memberIndex];
+    if (!member) return;
+
+    const updatedMember: GroupMember = {
+      ...member,
+      restaurant: item.restaurant,
+      drink: item.drink,
+      price: item.price,
+      temperature: item.temperature,
+      milk: item.milk,
+      syrup: item.syrup,
+      whip: item.whip,
+      added: false,
+    };
+    setMembers((current) =>
+      current.map((currentMember, index) =>
+        index === memberIndex ? updatedMember : currentMember,
+      ),
+    );
+    setSelectedRestaurant(item.restaurant);
+    setQuickOrderMember(null);
+    setEditingMember(memberIndex);
+    setGroupFlow(false);
+    setSelectedSize(updatedMember.size);
+    setSelectedTemperature(item.temperature);
+    setSelectedMilk(item.milk);
+    setSelectedSyrup(item.syrup);
+    setSelectedWhip(item.whip);
+    setScreen("customize");
+  }
+
+  function selectRestaurant(restaurant: string) {
+    setSelectedRestaurant(restaurant);
+    setSearchQuery("");
+    setScreen("home");
+    setActiveTab("Home");
   }
 
   function quickOrder() {
@@ -470,6 +654,19 @@ export default function App() {
   }
 
   function submitOrder() {
+    const placedItems = quickOrderMember ? [quickOrderMember] : orderedMembers;
+    if (placedItems.length > 0) {
+      setRecentOrders((current) =>
+        [
+          {
+            id: Date.now(),
+            items: placedItems.map((item) => ({ ...item, added: true })),
+            placedAt: new Date().toLocaleString(),
+          },
+          ...current,
+        ].slice(0, 5),
+      );
+    }
     setMembers((current) =>
       current.map((member) => ({ ...member, added: false })),
     );
@@ -478,6 +675,32 @@ export default function App() {
     setScreen("home");
     setActiveTab("Home");
     setShowConfirmation(true);
+  }
+
+  function reorderRecentOrder(order: RecentOrder) {
+    setMembers(order.items.map((item) => ({ ...item, added: true })));
+    setDraftTags(order.items.map((item) => item.dietaryTag));
+    setSelectedRestaurant(order.items[0]?.restaurant ?? selectedRestaurant);
+    setQuickOrderMember(null);
+    setGroupFlow(true);
+    setActiveTab("Orders");
+    setScreen("groupSummary");
+  }
+
+  function logOut() {
+    setScreen("login");
+    setActiveTab("Home");
+    setFullName("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setLoginError("");
+    setQuickOrderMember(null);
+    setGroupFlow(false);
+    setShowDietary(false);
+    setShowConflict(false);
+    setShowNutWarning(false);
+    setShowConfirmation(false);
   }
 
   function selectSyrup(syrup: string) {
@@ -501,6 +724,132 @@ export default function App() {
       setDraftTags(members.map((member) => member.dietaryTag));
       setScreen("profile");
     }
+  }
+
+  function renderSearchBar() {
+    return (
+      <View style={styles.searchBar}>
+        <Svg width={20} height={20} viewBox="0 0 24 24" accessibilityRole="image">
+          <Circle
+            cx={10.8}
+            cy={10.8}
+            r={6.3}
+            fill="none"
+            stroke={colors.muted}
+            strokeWidth={1.8}
+          />
+          <Path
+            d="m15.5 15.5 4 4"
+            fill="none"
+            stroke={colors.muted}
+            strokeWidth={1.8}
+            strokeLinecap="round"
+          />
+        </Svg>
+        <TextInput
+          accessibilityLabel="Search restaurants or drinks"
+          autoCapitalize="none"
+          onChangeText={setSearchQuery}
+          onSubmitEditing={() => {
+            if ("starbucks".includes(searchQuery.trim().toLowerCase())) {
+              setSearchQuery("");
+            }
+            openTab("Menu");
+          }}
+          placeholder="Search restaurants or drinks"
+          placeholderTextColor={colors.muted}
+          returnKeyType="search"
+          style={styles.searchInput}
+          value={searchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <Pressable
+            accessibilityLabel="Clear search"
+            accessibilityRole="button"
+            onPress={() => setSearchQuery("")}
+            style={styles.searchClear}
+          >
+            <Text style={styles.searchClearText}>×</Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  }
+
+  function renderHomeSearchResults() {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return null;
+
+    const matchingRestaurants = restaurants.filter((restaurant) =>
+      restaurant.toLowerCase().includes(query),
+    );
+    const matchingDrinks = menuDrinks.filter(
+      (item) =>
+        item.drink.toLowerCase().includes(query) ||
+        item.restaurant.toLowerCase().includes(query),
+    );
+    const matchingMembers = members
+      .map((member, index) => ({ member, index }))
+      .filter(({ member }) => member.drink.toLowerCase().includes(query));
+
+    return (
+      <View style={styles.searchResults}>
+        <Text style={styles.fieldLabel}>Search results</Text>
+        {matchingRestaurants.map((restaurant) => (
+          <Pressable
+            accessibilityRole="button"
+            key={restaurant}
+            onPress={() => selectRestaurant(restaurant)}
+            style={styles.searchResult}
+          >
+            <View style={styles.searchResultCopy}>
+              <Text style={styles.memberName}>{restaurant}</Text>
+              <Text style={styles.cardDetail}>UTD Student Union · Restaurant</Text>
+            </View>
+            <Text style={styles.chooseText}>View menu  ›</Text>
+          </Pressable>
+        ))}
+        {matchingDrinks.map((item) => {
+          const memberIndex = members.findIndex((member) => !member.added);
+          const targetIndex = memberIndex < 0 ? 0 : memberIndex;
+          return (
+            <Pressable
+              accessibilityRole="button"
+              key={`${item.restaurant}-${item.drink}`}
+              onPress={() => chooseDrink(targetIndex, item)}
+              style={styles.searchResult}
+            >
+              <View style={styles.searchResultCopy}>
+                <Text style={styles.memberName}>{item.drink}</Text>
+                <Text style={styles.cardDetail}>
+                  {item.restaurant} · From {money(item.price)}
+                </Text>
+              </View>
+              <Text style={styles.chooseText}>Customize  ›</Text>
+            </Pressable>
+          );
+        })}
+        {matchingMembers.map(({ member, index }) => (
+          <Pressable
+            accessibilityRole="button"
+            key={member.id}
+            onPress={() => beginCustomization(index, false)}
+            style={styles.searchResult}
+          >
+            <View style={styles.searchResultCopy}>
+              <Text style={styles.memberName}>{member.drink}</Text>
+              <Text style={styles.cardDetail}>From {money(member.price)}</Text>
+            </View>
+            <Text style={styles.chooseText}>Customize  ›</Text>
+          </Pressable>
+        ))}
+        {matchingRestaurants.length === 0 &&
+          matchingDrinks.length === 0 &&
+          matchingMembers.length === 0 && (
+          <Text style={styles.cardDetail}>No restaurants or drinks found.</Text>
+        )}
+      </View>
+    );
   }
 
   function header(title: string, subtitle: string) {
@@ -528,7 +877,7 @@ export default function App() {
   function pickupCard() {
     return (
       <View style={styles.card}>
-        <Text style={styles.cardHeading}>⌖  Starbucks UTD</Text>
+        <Text style={styles.cardHeading}>⌖  {selectedRestaurant} UTD</Text>
         <Text style={styles.cardDetail}>Student Union · Pickup counter</Text>
         <Text style={styles.readyText}>Ready in 10 min</Text>
         <View style={styles.divider} />
@@ -556,13 +905,14 @@ export default function App() {
     return (
       <>
         {header("ServeFlow", "UTD Student Union")}
-        <View style={styles.crewBanner}>
-          <Text style={styles.crewIcon}>⌖</Text>
-          <View>
-            <Text style={styles.crewTitle}>Restaurant selected</Text>
-            <Text style={styles.cardDetail}>Starbucks · Student Union pickup</Text>
-          </View>
-        </View>
+        {renderSearchBar()}
+        {renderHomeSearchResults()}
+        <ChoiceSection
+          title="Choose a restaurant"
+          options={restaurants}
+          selected={selectedRestaurant}
+          onSelect={selectRestaurant}
+        />
         <View style={styles.sectionHeading}>
           <Text style={styles.sectionTitle}>Your usual</Text>
         </View>
@@ -572,7 +922,7 @@ export default function App() {
             <View style={styles.memberCopy}>
               <Text style={styles.memberName}>{favorite.drink}</Text>
               <Text style={styles.cardDetail}>
-                {favorite.milk} · {favorite.whip} · {favorite.size} ·{" "}
+                {favorite.restaurant} · {favorite.milk} · {favorite.whip} · {favorite.size} ·{" "}
                 {favorite.temperature}
               </Text>
               <Text style={styles.priceText}>{money(favorite.price)}</Text>
@@ -668,7 +1018,7 @@ export default function App() {
                   <Badge tag={member.dietaryTag} />
                 </View>
                 <Text numberOfLines={2} style={styles.cardDetail}>
-                  {member.drink} · {member.size} · {member.milk}
+                  {member.restaurant} · {member.drink} · {member.size} · {member.milk}
                 </Text>
               </View>
             </View>
@@ -739,26 +1089,46 @@ export default function App() {
   }
 
   function renderMenu() {
+    const query = searchQuery.trim().toLowerCase();
+    const visibleDrinks = menuDrinks.filter(
+      (item) =>
+        item.restaurant === selectedRestaurant &&
+        (!query ||
+          selectedRestaurant.toLowerCase().includes(query) ||
+          item.drink.toLowerCase().includes(query)),
+    );
+
     return (
       <>
-        {header("Menu", "Choose a drink for your group")}
-        {members.map((member, index) => (
-          <Pressable
-            accessibilityRole="button"
-            key={member.id}
-            onPress={() => beginCustomization(index, false)}
-            style={({ pressed }) => [styles.menuItem, pressed && styles.pressed]}
-          >
-            <DrinkArtwork drink={member.drink} size={58} />
-            <View style={styles.menuCopy}>
-              <Text style={styles.memberName}>{member.drink}</Text>
-              <Text style={styles.cardDetail}>
-                From {money(member.price)} · {member.temperature}
-              </Text>
-            </View>
-            <Text style={styles.chooseText}>Choose</Text>
-          </Pressable>
-        ))}
+        {header("Menu", `${selectedRestaurant} · Select a drink for your group`)}
+        {renderSearchBar()}
+        <Text style={styles.cardDetail}>
+          Sample menu items and prices are for demonstration.
+        </Text>
+        {visibleDrinks.map((item) => {
+            const memberIndex = members.findIndex((member) => !member.added);
+            const targetIndex = memberIndex < 0 ? 0 : memberIndex;
+            return (
+              <Pressable
+                accessibilityRole="button"
+                key={`${item.restaurant}-${item.drink}`}
+                onPress={() => chooseDrink(targetIndex, item)}
+                style={({ pressed }) => [styles.menuItem, pressed && styles.pressed]}
+              >
+                <DrinkArtwork drink={item.drink} size={58} />
+                <View style={styles.menuCopy}>
+                  <Text style={styles.memberName}>{item.drink}</Text>
+                  <Text style={styles.cardDetail}>
+                    From {money(item.price)} · {item.temperature}
+                  </Text>
+                </View>
+                <Text style={styles.chooseText}>Choose</Text>
+              </Pressable>
+            );
+          })}
+        {visibleDrinks.length === 0 && (
+          <Text style={styles.cardDetail}>No drinks match your search.</Text>
+        )}
       </>
     );
   }
@@ -819,6 +1189,9 @@ export default function App() {
             warning and offer vanilla syrup instead.
           </Text>
         </View>
+        <View style={styles.logoutSection}>
+          <PrimaryButton title="Log out" secondary onPress={logOut} />
+        </View>
       </>
     );
   }
@@ -827,7 +1200,7 @@ export default function App() {
     if (!currentMember) return null;
     return (
       <>
-        {header("Customize", "Starbucks · UTD Student Union")}
+        {header("Customize", `${currentMember.restaurant} · UTD Student Union`)}
         <View style={styles.drinkCard}>
           <DrinkArtwork drink={currentMember.drink} size={76} />
           <View style={styles.drinkCopy}>
@@ -856,14 +1229,12 @@ export default function App() {
           selected={selectedMilk}
           onSelect={setSelectedMilk}
         />
-        {currentMember.drink.includes("Cold Brew") && (
-          <ChoiceSection
-            title="Syrup"
-            options={["No syrup", "Vanilla syrup", "Hazelnut syrup"]}
-            selected={selectedSyrup}
-            onSelect={selectSyrup}
-          />
-        )}
+        <ChoiceSection
+          title="Syrup"
+          options={["No syrup", "Vanilla syrup", "Caramel syrup", "Hazelnut syrup"]}
+          selected={selectedSyrup}
+          onSelect={selectSyrup}
+        />
         <ChoiceSection
           title="Topping"
           options={["Dairy whip", "Vegan whip", "No topping"]}
@@ -935,7 +1306,7 @@ export default function App() {
                   <Text style={styles.bodyText}>{money(member.price)}</Text>
                 </View>
                 <Text style={styles.cardDetail}>
-                  {member.size} · {member.temperature} · {member.milk}
+                  {member.restaurant} · {member.size} · {member.temperature} · {member.milk}
                   {member.syrup !== "No syrup" ? ` · ${member.syrup}` : ""} ·{" "}
                   {member.whip}
                 </Text>
@@ -950,6 +1321,50 @@ export default function App() {
         </Text>
         {pickupCard()}
         {priceCard(orderedMembers)}
+        <View style={styles.recentOrdersSection}>
+          <View style={styles.sectionHeading}>
+            <Text style={styles.sectionTitle}>Recent orders</Text>
+            <Text style={styles.sectionCount}>
+              {recentOrders.length} {recentOrders.length === 1 ? "order" : "orders"}
+            </Text>
+          </View>
+          {recentOrders.length === 0 ? (
+            <View style={styles.card}>
+              <Text style={styles.cardDetail}>
+                Completed orders will appear here so you can reorder them.
+              </Text>
+            </View>
+          ) : (
+            recentOrders.map((order) => {
+              const total = order.items.reduce(
+                (sum, item) => sum + item.price,
+                0,
+              );
+              return (
+                <View key={order.id} style={styles.recentOrderCard}>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.cardHeading}>
+                      {order.items.length}{" "}
+                      {order.items.length === 1 ? "drink" : "drinks"}
+                    </Text>
+                    <Text style={styles.cardHeading}>{money(total)}</Text>
+                  </View>
+                  <Text style={styles.cardDetail}>{order.placedAt}</Text>
+                  <Text style={styles.cardDetail} numberOfLines={2}>
+                    {order.items
+                      .map((item) => `${item.name}: ${item.drink} (${item.restaurant})`)
+                      .join(" · ")}
+                  </Text>
+                  <PrimaryButton
+                    title="Reorder"
+                    secondary
+                    onPress={() => reorderRecentOrder(order)}
+                  />
+                </View>
+              );
+            })
+          )}
+        </View>
       </>
     );
   }
@@ -1029,10 +1444,12 @@ export default function App() {
     if (screen === "groupSummary") {
       return (
         <>
-          <PrimaryButton
-            title={`Pay & submit group · ${money(subtotal * 1.0825)}`}
-            onPress={submitOrder}
-          />
+          {orderedMembers.length > 0 && (
+            <PrimaryButton
+              title={`Pay & submit group · ${money(subtotal * 1.0825)}`}
+              onPress={submitOrder}
+            />
+          )}
           <Pressable
             accessibilityRole="button"
             onPress={() => {
@@ -1373,7 +1790,10 @@ export default function App() {
         >
           <StatusBar barStyle="dark-content" />
           <ScrollView
-            contentContainerStyle={styles.content}
+            contentContainerStyle={[
+              styles.content,
+              windowWidth >= 1280 && styles.wideContent,
+            ]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -1436,34 +1856,36 @@ export default function App() {
 const styles = StyleSheet.create({
   appViewport: {
     flex: 1,
-    backgroundColor: Platform.OS === "web" ? "#20211F" : colors.cream,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: colors.cream,
+    alignItems: "stretch",
+    justifyContent: "flex-start",
   },
   root: {
     flex: 1,
+    width: "100%",
     backgroundColor: colors.cream,
   },
   mobileFrame: Platform.select({
     web: {
       height: "100%",
+      width: "100%",
       maxWidth: "100%",
-      maxHeight: 932,
-      aspectRatio: 430 / 932,
       overflow: "hidden",
-      borderRadius: 32,
-      borderWidth: 1,
-      borderColor: "#D0CEC8",
-      boxShadow: "0 12px 44px rgba(0, 0, 0, 0.32)",
+      borderRadius: 0,
     } as const,
     default: {},
   }),
   content: {
     flexGrow: 1,
+    width: "100%",
+    alignSelf: "center",
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 18,
     gap: 12,
+  },
+  wideContent: {
+    maxWidth: 1120,
   },
   loginContent: {
     justifyContent: "center",
@@ -1473,6 +1895,54 @@ const styles = StyleSheet.create({
   signupContent: {
     paddingTop: 28,
     paddingBottom: 28,
+  },
+  searchBar: {
+    minHeight: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 14,
+    backgroundColor: colors.white,
+  },
+  searchInput: {
+    flex: 1,
+    minWidth: 0,
+    paddingVertical: 10,
+    color: colors.text,
+    fontSize: 13,
+  },
+  searchClear: {
+    width: 28,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  searchClearText: {
+    color: colors.muted,
+    fontSize: 22,
+    lineHeight: 24,
+  },
+  searchResults: {
+    gap: 8,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: colors.white,
+  },
+  searchResult: {
+    minHeight: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.line,
+  },
+  searchResultCopy: {
+    flex: 1,
+    gap: 3,
   },
   loginBrand: {
     width: 64,
@@ -1849,6 +2319,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   tipsCard: {
+    gap: 8,
+    padding: 14,
+    borderRadius: 16,
+    backgroundColor: colors.white,
+  },
+  logoutSection: {
+    gap: 10,
+    marginTop: 8,
+  },
+  recentOrdersSection: {
+    gap: 10,
+    marginTop: 8,
+  },
+  recentOrderCard: {
     gap: 8,
     padding: 14,
     borderRadius: 16,
