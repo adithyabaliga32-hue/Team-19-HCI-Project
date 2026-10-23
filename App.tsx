@@ -104,6 +104,20 @@ const initialMembers: GroupMember[] = [
   },
 ];
 
+const savedFavorite: GroupMember = {
+  id: -1,
+  name: "Your usual",
+  dietaryTag: "Vegan",
+  drink: "Oat Latte",
+  size: "Grande",
+  temperature: "Hot",
+  milk: "Oat milk",
+  syrup: "No syrup",
+  whip: "Vegan whip",
+  price: 5.45,
+  added: false,
+};
+
 const tagOptions: DietaryTag[] = [
   "Vegan",
   "Gluten-free",
@@ -302,6 +316,7 @@ export default function App() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [members, setMembers] = useState(initialMembers);
+  const [quickOrderMember, setQuickOrderMember] = useState<GroupMember | null>(null);
   const [profileTags, setProfileTags] = useState<DietaryTag[]>([
     "Vegan",
     "Nut allergy",
@@ -325,7 +340,7 @@ export default function App() {
   const [selectedSyrup, setSelectedSyrup] = useState("No syrup");
   const [selectedWhip, setSelectedWhip] = useState("Dairy whip");
 
-  const currentMember = members[editingMember];
+  const currentMember = quickOrderMember ?? members[editingMember];
   const orderedMembers = useMemo(
     () => members.filter((member) => member.added),
     [members],
@@ -392,6 +407,8 @@ export default function App() {
 
   function beginCustomization(index: number, inGroupFlow: boolean) {
     const member = members[index];
+    if (!member) return;
+    setQuickOrderMember(null);
     setEditingMember(index);
     setGroupFlow(inGroupFlow);
     setSelectedSize(member.size);
@@ -400,6 +417,23 @@ export default function App() {
     setSelectedSyrup(member.syrup);
     setSelectedWhip(member.whip);
     setScreen("customize");
+  }
+
+  function quickOrder() {
+    const member = savedFavorite;
+    setQuickOrderMember(member);
+    setGroupFlow(false);
+    setSelectedSize(member.size);
+    setSelectedTemperature(member.temperature);
+    setSelectedMilk(member.milk);
+    setSelectedSyrup(member.syrup);
+    setSelectedWhip(member.whip);
+
+    if (profileTags.includes("Vegan") && member.whip !== "Vegan whip") {
+      setShowConflict(true);
+    } else {
+      setScreen("orderSummary");
+    }
   }
 
   function addCurrentDrink() {
@@ -439,6 +473,7 @@ export default function App() {
     setMembers((current) =>
       current.map((member) => ({ ...member, added: false })),
     );
+    setQuickOrderMember(null);
     setGroupFlow(false);
     setScreen("home");
     setActiveTab("Home");
@@ -516,9 +551,59 @@ export default function App() {
   }
 
   function renderHome() {
+    const favorite = savedFavorite;
+
     return (
       <>
-        {header("Group order", "Starbucks · UTD Student Union")}
+        {header("ServeFlow", "UTD Student Union")}
+        <View style={styles.crewBanner}>
+          <Text style={styles.crewIcon}>⌖</Text>
+          <View>
+            <Text style={styles.crewTitle}>Restaurant selected</Text>
+            <Text style={styles.cardDetail}>Starbucks · Student Union pickup</Text>
+          </View>
+        </View>
+        <View style={styles.sectionHeading}>
+          <Text style={styles.sectionTitle}>Your usual</Text>
+        </View>
+        <View style={styles.memberCard}>
+          <View style={styles.memberDetails}>
+            <DrinkArtwork drink={favorite.drink} size={72} />
+            <View style={styles.memberCopy}>
+              <Text style={styles.memberName}>{favorite.drink}</Text>
+              <Text style={styles.cardDetail}>
+                {favorite.milk} · {favorite.whip} · {favorite.size} ·{" "}
+                {favorite.temperature}
+              </Text>
+              <Text style={styles.priceText}>{money(favorite.price)}</Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+            {profileTags
+              .filter((tag) => tag !== "None")
+              .map((tag) => <Badge key={tag} tag={tag} />)}
+          </View>
+          <PrimaryButton
+            title="Quick order"
+            onPress={quickOrder}
+          />
+        </View>
+        <View style={styles.sectionHeading}>
+          <Text style={styles.sectionTitle}>Explore the menu</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => openTab("Menu")}
+          >
+            <Text style={styles.chooseText}>See drinks  ›</Text>
+          </Pressable>
+        </View>
+        <View style={styles.sectionHeading}>
+          <Text style={styles.sectionTitle}>Group order</Text>
+          <Text style={styles.sectionCount}>
+            {members.length} {members.length === 1 ? "person" : "people"} ·{" "}
+            {orderedMembers.length} drinks
+          </Text>
+        </View>
         <View style={styles.crewBanner}>
           <Text style={styles.crewIcon}>♧</Text>
           <View>
@@ -804,6 +889,13 @@ export default function App() {
           <View style={styles.summaryRow}>
             <Text style={styles.cardHeading}>☕  {currentMember.drink}</Text>
             <Text style={styles.cardHeading}>{money(currentMember.price)}</Text>
+          </View>
+          <View style={styles.summaryMemberHeader}>
+            {quickOrderMember
+              ? profileTags
+                  .filter((tag) => tag !== "None")
+                  .map((tag) => <Badge key={tag} tag={tag} />)
+              : <Badge tag={currentMember.dietaryTag} />}
           </View>
           <View style={styles.divider} />
           <SummaryRow title="Size" value={`${currentMember.size} · 16 fl oz`} />
@@ -1297,7 +1389,11 @@ export default function App() {
               "Your Vegan preference may conflict with dairy whipped cream. Confirm ingredients and cross-contact risks with the barista.",
             primaryTitle: "Switch to Vegan Whip",
             onPrimary: () => {
-              updateMember(editingMember, { whip: "Vegan whip" });
+              if (quickOrderMember) {
+                setQuickOrderMember({ ...quickOrderMember, whip: "Vegan whip" });
+              } else {
+                updateMember(editingMember, { whip: "Vegan whip" });
+              }
               setSelectedWhip("Vegan whip");
               setShowConflict(false);
               setScreen("orderSummary");

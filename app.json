@@ -4,8 +4,11 @@
     "slug": "serveflow",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "serveflow",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "plugins": [
+      "expo-router"
+    ],
     "android": {
       "package": "com.safebigfoot65.serveflow"
     }

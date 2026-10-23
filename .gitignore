@@ -6,6 +6,8 @@ node_modules/
 .expo-shared/
 dist/
 web-build/
+expo-env.d.ts
+.metro-health-check*
 
 # Local modernization / upgrade tooling state
 .tsupgrader/
@@ -35,3 +37,15 @@ yarn-error.log*
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Additional private keys
+*.pem

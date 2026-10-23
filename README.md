@@ -6,7 +6,7 @@ ServeFlow is a mobile beverage-ordering interface focused on identifying and res
 
 The central solution is a contextual confirmation prompt. For example, selecting oat milk while dairy whipped cream remains selected prompts the customer to switch to vegan whip. The interface also uses dietary tags to identify conflicting ingredients when ordering for multiple people.
 
-The project demonstrates this solution through three tasks: a simple saved order, a moderate drink customization, and a complex group order. Campus Cup and Starbucks are store names within the design. The Figma screens provide the visual reference for ServeFlow’s implementation.
+The project demonstrates this solution through three tasks: a quick order from the saved Oat Latte, a moderate drink customization, and a complex group order. The Home screen also links to the restaurant menu, while the Profile tab lets a customer manage dietary preferences. Individual group-member tags drive the group-order conflict checks, and the saved-order badges reflect the Profile selections. Campus Cup and Starbucks are store names within the design. The Figma screens provide the visual reference for ServeFlow’s implementation.
 
 Requirements and Setup
 - A mobile phone with an internet connection.
@@ -29,8 +29,8 @@ You selected oat milk. Would you like to switch to vegan whip?
 Selecting Switch to Vegan Whip resolves the illustrated dairy-topping conflict. In the group task, dietary tags belong to individual participants so ingredient checks can apply to the correct person.
 Task 1: Simple — Order a Saved Beverage
 Goal: Quickly order a saved beverage and review its dietary tags without browsing menus or rechecking individual ingredients.
-1. Open ServeFlow and navigate to favorites.
-2. Select the saved Oat Latte.
+1. Open ServeFlow and sign in with demonstration details.
+2. Select Quick order in the Your usual card on Home.
 3. Review the order summary and the displayed verified allergen-safe tags.
 4. Confirm payment and submit the order.
 Expected result: The saved drink can be ordered through a short flow without repeating customization.
@@ -65,7 +65,7 @@ Scope and Limitations
 - The supplied materials describe intended behavior. Confirm working interactions, navigation labels, and supported ingredient combinations against the completed implementation.
 - The task designs use “verified allergen-safe” tags and badges. Their presence in the UI does not establish real ingredient verification or cross-contact controls. Document the source and limits of these labels in the completed prototype.
 - Oat milk alone does not make an entire beverage dairy-free. The demonstrated prompt addresses the remaining dairy whipped cream.
-- Payment processing, order-queue submission, saved favorites, preference persistence, and preparation estimates may be simulated in a prototype. Identify the actual behavior before submission.
+- Payment processing, order-queue submission, saved favorites, preference persistence, and preparation estimates may be simulated in a prototype. The current saved Oat Latte and Profile preferences are in-memory demonstration data; identify the actual behavior before submission.
 - Record any incomplete controls, predefined choices, or restrictions on adding group participants.
 Troubleshooting
 Problem	Action
