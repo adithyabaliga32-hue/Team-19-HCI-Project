@@ -465,6 +465,7 @@ export default function App() {
     "Vegan",
     "Nut allergy",
   ]);
+  const [profileDraftTags, setProfileDraftTags] = useState<DietaryTag[]>([]);
   const [draftTags, setDraftTags] = useState<DietaryTag[]>([
     "Vegan",
     "Nut allergy",
@@ -721,6 +722,7 @@ export default function App() {
     } else if (tab === "Orders") {
       setScreen("groupSummary");
     } else {
+      setProfileDraftTags(profileTags);
       setDraftTags(members.map((member) => member.dietaryTag));
       setScreen("profile");
     }
@@ -1154,18 +1156,22 @@ export default function App() {
         {tagOptions
           .filter((tag) => tag !== "Gluten-free")
           .map((tag) => {
-            const selected = profileTags.includes(tag);
+            const selected = profileDraftTags.includes(tag);
             return (
               <Pressable
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: selected }}
                 key={tag}
                 onPress={() =>
-                  setProfileTags((current) =>
-                    selected
-                      ? current.filter((item) => item !== tag)
-                      : [...current, tag],
-                  )
+                  setProfileDraftTags((current) => {
+                    if (selected) {
+                      return current.filter((item) => item !== tag);
+                    }
+                    if (tag === "None") {
+                      return ["None"];
+                    }
+                    return [...current.filter((item) => item !== "None"), tag];
+                  })
                 }
                 style={[styles.restriction, selected && styles.restrictionSelected]}
               >
@@ -1468,6 +1474,7 @@ export default function App() {
         <PrimaryButton
           title="Save preferences"
           onPress={() => {
+            setProfileTags(profileDraftTags);
             setActiveTab("Home");
             setScreen("home");
           }}
