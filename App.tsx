@@ -68,6 +68,7 @@ type MenuDrink = {
 };
 
 const restaurants = ["Starbucks", "Dunkin'", "Dutch Bros"];
+const allRestaurantsOption = "All";
 
 const menuDrinks: MenuDrink[] = [
   { restaurant: "Starbucks", drink: "Caffè Latte", price: 5.45, temperature: "Hot", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
@@ -458,6 +459,7 @@ export default function App() {
   const [loginError, setLoginError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRestaurant, setSelectedRestaurant] = useState("Starbucks");
+  const [menuRestaurantFilter, setMenuRestaurantFilter] = useState("Starbucks");
   const [members, setMembers] = useState(initialMembers);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [quickOrderMember, setQuickOrderMember] = useState<GroupMember | null>(null);
@@ -586,6 +588,7 @@ export default function App() {
       ),
     );
     setSelectedRestaurant(item.restaurant);
+    setMenuRestaurantFilter(item.restaurant);
     setQuickOrderMember(null);
     setEditingMember(memberIndex);
     setGroupFlow(false);
@@ -599,9 +602,17 @@ export default function App() {
 
   function selectRestaurant(restaurant: string) {
     setSelectedRestaurant(restaurant);
+    setMenuRestaurantFilter(restaurant);
     setSearchQuery("");
-    setScreen("home");
-    setActiveTab("Home");
+    setScreen("menu");
+    setActiveTab("Menu");
+  }
+
+  function selectMenuRestaurant(restaurant: string) {
+    setMenuRestaurantFilter(restaurant);
+    if (restaurant !== allRestaurantsOption) {
+      setSelectedRestaurant(restaurant);
+    }
   }
 
   function quickOrder() {
@@ -681,7 +692,9 @@ export default function App() {
   function reorderRecentOrder(order: RecentOrder) {
     setMembers(order.items.map((item) => ({ ...item, added: true })));
     setDraftTags(order.items.map((item) => item.dietaryTag));
-    setSelectedRestaurant(order.items[0]?.restaurant ?? selectedRestaurant);
+    const restaurant = order.items[0]?.restaurant ?? selectedRestaurant;
+    setSelectedRestaurant(restaurant);
+    setMenuRestaurantFilter(restaurant);
     setQuickOrderMember(null);
     setGroupFlow(true);
     setActiveTab("Orders");
@@ -909,12 +922,6 @@ export default function App() {
         {header("ServeFlow", "UTD Student Union")}
         {renderSearchBar()}
         {renderHomeSearchResults()}
-        <ChoiceSection
-          title="Choose a restaurant"
-          options={restaurants}
-          selected={selectedRestaurant}
-          onSelect={selectRestaurant}
-        />
         <View style={styles.sectionHeading}>
           <Text style={styles.sectionTitle}>Your usual</Text>
         </View>
@@ -1094,19 +1101,27 @@ export default function App() {
     const query = searchQuery.trim().toLowerCase();
     const visibleDrinks = menuDrinks.filter(
       (item) =>
-        item.restaurant === selectedRestaurant &&
+        (menuRestaurantFilter === allRestaurantsOption ||
+          item.restaurant === menuRestaurantFilter) &&
         (!query ||
-          selectedRestaurant.toLowerCase().includes(query) ||
+          item.restaurant.toLowerCase().includes(query) ||
           item.drink.toLowerCase().includes(query)),
     );
 
     return (
       <>
-        {header("Menu", `${selectedRestaurant} · Select a drink for your group`)}
+        {header(
+          "Menu",
+          `${menuRestaurantFilter === allRestaurantsOption ? "All restaurants" : menuRestaurantFilter} · Select a drink for your group`,
+        )}
         {renderSearchBar()}
-        <Text style={styles.cardDetail}>
-          Sample menu items and prices are for demonstration.
-        </Text>
+        <ChoiceSection
+          title="Choose a restaurant"
+          options={[allRestaurantsOption, ...restaurants]}
+          selected={menuRestaurantFilter}
+          onSelect={selectMenuRestaurant}
+        />
+        
         {visibleDrinks.map((item) => {
             const memberIndex = members.findIndex((member) => !member.added);
             const targetIndex = memberIndex < 0 ? 0 : memberIndex;
@@ -1122,6 +1137,9 @@ export default function App() {
                   <Text style={styles.memberName}>{item.drink}</Text>
                   <Text style={styles.cardDetail}>
                     From {money(item.price)} · {item.temperature}
+                    {menuRestaurantFilter === allRestaurantsOption
+                      ? ` · ${item.restaurant}`
+                      : ""}
                   </Text>
                 </View>
                 <Text style={styles.chooseText}>Choose</Text>
@@ -1615,13 +1633,13 @@ export default function App() {
     message: string;
     primaryTitle: string;
     onPrimary: () => void;
-    secondaryTitle: string;
-    onSecondary: () => void;
+    secondaryTitle?: string;
+    onSecondary?: () => void;
   }) {
     return (
       <Modal
         animationType="fade"
-        onRequestClose={onSecondary}
+        onRequestClose={onSecondary ?? onPrimary}
         transparent
         visible={visible}
       >
@@ -1630,11 +1648,13 @@ export default function App() {
             <Text style={styles.dialogTitle}>{title}</Text>
             <Text style={styles.dialogMessage}>{message}</Text>
             <PrimaryButton title={primaryTitle} onPress={onPrimary} />
-            <PrimaryButton
-              title={secondaryTitle}
-              secondary
-              onPress={onSecondary}
-            />
+            {secondaryTitle && onSecondary && (
+              <PrimaryButton
+                title={secondaryTitle}
+                secondary
+                onPress={onSecondary}
+              />
+            )}
           </View>
         </View>
       </Modal>
@@ -1847,12 +1867,9 @@ export default function App() {
           {renderPromptModal({
             visible: showConfirmation,
             title: "Order submitted",
-            message:
-              "Your prototype order has been submitted. Payment and order fulfillment are simulated.",
+            message: "Your order has been submitted.",
             primaryTitle: "Done",
             onPrimary: () => setShowConfirmation(false),
-            secondaryTitle: "Close",
-            onSecondary: () => setShowConfirmation(false),
           })}
         </SafeAreaView>
       </View>
