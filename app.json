@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "ServeFlow",
+    "slug": "serveflow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "serveflow",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-router"
+    ],
+    "android": {
+      "package": "com.safebigfoot65.serveflow"
+    }
+  }
+}
