@@ -8,16 +8,36 @@ The central solution is a contextual confirmation prompt. For example, selecting
 
 The project demonstrates this solution through three tasks: a quick order from the saved Oat Latte, a moderate drink customization, and a complex group order. Home lets customers choose Starbucks, Dunkin’, or Dutch Bros, and Menu shows sample drinks for the selected restaurant. Menu items and prices are illustrative prototype data. Some menu art uses images supplied by the user; remaining drink artwork is original prototype illustration. The Profile tab lets a customer manage dietary preferences. Individual group-member tags drive the group-order conflict checks, and the saved-order badges reflect the Profile selections. The Figma screens provide the visual reference for ServeFlow’s implementation.
 
-Requirements and Setup
-- A mobile phone with an internet connection.
-- The final application link or installation package supplied by the project team.
-The delivery method, supported browsers or operating systems, installation requirements, and test credentials have not yet been provided. Complete the following before submission:
-Setup detail	Information to provide
-Application access	Final application URL or installation package
-Installation requirements	Exact setup steps, or confirmation that no additional software is required
-Supported environment	Supported browsers/devices and any required settings
-Test credentials	User ID and password, or confirmation that no login is required
-Demonstration data	How to access the saved Oat Latte and the group-order participants
+## Run ServeFlow locally
+
+### Prerequisites
+- Node.js and npm.
+- For Android: Android Studio with the Android SDK, plus an emulator or an Android device with USB debugging enabled.
+- For iOS: macOS with Xcode and an iOS Simulator or connected device. Local iOS builds are not supported on Windows.
+
+### Install and start
+From the project root, install the locked dependencies and start Expo:
+
+```sh
+npm ci
+npm run start
+```
+
+When the Expo development server is ready, use its terminal shortcuts to open the app:
+
+- Press `w` to run the web version in a browser.
+- Press `a` to build and open the Android app in an emulator or connected device.
+- Press `i` to build and open the iOS app in the iOS Simulator (macOS only).
+
+You can also start a platform directly with `npm run web`, `npm run android`, or `npm run ios`. The native commands require the platform tooling listed above. Keep the development server running while using the app.
+
+The app opens directly to its home screen; no sign-in is required. Menu items and prices are sample prototype data. The saved Oat Latte and profile preferences are in-memory demonstration data and may reset when the app restarts.
+
+### Useful checks
+```sh
+npm run lint
+npm run typecheck
+```
 
 
 How the UI Functions
@@ -29,10 +49,9 @@ You selected oat milk. Would you like to switch to vegan whip?
 Selecting Switch to Vegan Whip resolves the illustrated dairy-topping conflict. In the group task, dietary tags belong to individual participants so ingredient checks can apply to the correct person.
 Task 1: Simple — Order a Saved Beverage
 Goal: Quickly order a saved beverage and review its dietary tags without browsing menus or rechecking individual ingredients.
-1. Open ServeFlow and sign in with demonstration details.
-2. Select Quick order in the Your usual card on Home.
-3. Review the order summary and the displayed verified allergen-safe tags.
-4. Confirm payment and submit the order.
+1. Open ServeFlow and select Quick order in the Your usual card on Home.
+2. Review the order summary and the displayed dietary tags.
+3. Continue through the prototype checkout flow.
 Expected result: The saved drink can be ordered through a short flow without repeating customization.
 Task 2: Moderate — Customize a Beverage and Resolve a Conflict
 Goal: Customize a beverage while using ingredient-conflict detection to review and resolve an incompatible topping.
@@ -78,4 +97,4 @@ Content extends below the screen	Scroll within the mobile interface in portrait 
 
 
 Before Submission
-Complete the setup details, supply the final application access instructions, and test all three tasks from beginning to end. State which payment, order submission, dietary-label, and preparation-estimate behaviors are simulated or incomplete
+Test all three tasks from beginning to end. State which payment, order-submission, dietary-label, and preparation-estimate behaviors are simulated or incomplete.
