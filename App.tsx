@@ -48,6 +48,7 @@ type GroupMember = {
   syrup: string;
   whip: string;
   price: number;
+  quantity: number;
   added: boolean;
 };
 
@@ -67,8 +68,32 @@ type MenuDrink = {
   whip: string;
 };
 
+function getDietaryConflicts(member: GroupMember) {
+  const conflicts: string[] = [];
+
+  if (member.dietaryTag === "Vegan") {
+    if (member.milk === "2% milk") conflicts.push("2% milk conflicts with Vegan");
+    if (member.whip === "Dairy whip") conflicts.push("Dairy whipped cream conflicts with Vegan");
+  }
+  if (member.dietaryTag === "Lactose intolerance") {
+    if (member.milk === "2% milk") conflicts.push("2% milk contains lactose");
+    if (member.whip === "Dairy whip") conflicts.push("Dairy whipped cream contains lactose");
+  }
+  if (member.dietaryTag === "Nut allergy" && member.syrup === "Hazelnut syrup") {
+    conflicts.push("Hazelnut syrup conflicts with Nut allergy");
+  }
+
+  return conflicts;
+}
+
 const restaurants = ["Starbucks", "Dunkin'", "Dutch Bros"];
 const allRestaurantsOption = "All";
+
+function hasFixedIcedTemperature(drink: string) {
+  return /\b(?:iced|frozen|cold brew|refresher|frappuccino|frappe|blended)\b/i.test(
+    drink,
+  );
+}
 
 const menuDrinks: MenuDrink[] = [
   { restaurant: "Starbucks", drink: "Caffè Latte", price: 5.45, temperature: "Hot", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
@@ -91,7 +116,7 @@ const colors = {
   green: "#215C47",
   greenSoft: "#EBF2E8",
   cream: "#F8F7F1",
-  muted: "#7A827B",
+  muted: "#68716A",
   line: "#E5E3DC",
   white: "#FFFFFF",
   warning: "#93602F",
@@ -112,6 +137,7 @@ const initialMembers: GroupMember[] = [
     syrup: "No syrup",
     whip: "Dairy whip",
     price: 5.45,
+    quantity: 1,
     added: false,
   },
   {
@@ -126,6 +152,7 @@ const initialMembers: GroupMember[] = [
     syrup: "Vanilla syrup",
     whip: "No topping",
     price: 4.25,
+    quantity: 1,
     added: false,
   },
   {
@@ -140,6 +167,7 @@ const initialMembers: GroupMember[] = [
     syrup: "No syrup",
     whip: "No topping",
     price: 3.45,
+    quantity: 1,
     added: false,
   },
 ];
@@ -156,6 +184,7 @@ const savedFavorite: GroupMember = {
   syrup: "No syrup",
   whip: "Vegan whip",
   price: 5.45,
+  quantity: 1,
   added: false,
 };
 
@@ -166,9 +195,7 @@ const tagOptions: DietaryTag[] = [
   "Lactose intolerance",
   "None",
 ];
-const groupTagOptions: DietaryTag[] = tagOptions.filter(
-  (tag) => tag !== "Lactose intolerance",
-);
+const groupTagOptions = tagOptions.filter((tag) => tag !== "Gluten-free");
 
 const money = (value: number) =>
   value.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -177,22 +204,33 @@ function PrimaryButton({
   title,
   onPress,
   secondary = false,
+  disabled = false,
 }: {
   title: string;
   onPress: () => void;
   secondary?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.primaryButton,
         secondary && styles.secondaryButton,
+        disabled && styles.primaryButtonDisabled,
         pressed && styles.pressed,
       ]}
     >
-      <Text style={[styles.primaryButtonText, secondary && styles.secondaryButtonText]}>
+      <Text
+        style={[
+          styles.primaryButtonText,
+          secondary && styles.secondaryButtonText,
+          disabled && styles.primaryButtonTextDisabled,
+        ]}
+      >
         {title}
       </Text>
     </Pressable>
@@ -200,10 +238,12 @@ function PrimaryButton({
 }
 
 function Badge({ tag }: { tag: DietaryTag }) {
-  const warning = tag === "Nut allergy";
+  const warning = tag === "Nut allergy" || tag === "Lactose intolerance";
   return (
     <View style={[styles.badge, warning ? styles.warningBadge : styles.greenBadge]}>
-      <Text style={[styles.badgeText, warning && styles.warningText]}>{tag}</Text>
+      <Text style={[styles.badgeText, warning && styles.warningText]}>
+        {tag === "None" ? "No restrictions" : tag}
+      </Text>
     </View>
   );
 }
@@ -398,15 +438,20 @@ function ChoiceSection({
   options,
   selected,
   onSelect,
+  optionDetails,
 }: {
   title: string;
   options: string[];
   selected: string;
   onSelect: (option: string) => void;
+  optionDetails?: Record<string, string>;
 }) {
   return (
     <View style={styles.choiceCard}>
-      <Text style={styles.fieldLabel}>{title}</Text>
+      <View style={styles.choiceHeading}>
+        <Text style={styles.fieldLabel}>{title}</Text>
+        <Text style={styles.chooseHint}>Choose one</Text>
+      </View>
       <View style={styles.choiceRow}>
         {options.map((option) => {
           const active = option === selected;
@@ -421,6 +466,16 @@ function ChoiceSection({
               <Text style={[styles.choiceText, active && styles.choiceTextSelected]}>
                 {option}
               </Text>
+              {optionDetails?.[option] && (
+                <Text
+                  style={[
+                    styles.choiceDetail,
+                    active && styles.choiceTextSelected,
+                  ]}
+                >
+                  {optionDetails[option]}
+                </Text>
+              )}
             </Pressable>
           );
         })}
@@ -476,23 +531,76 @@ export default function App() {
   const [editingNameId, setEditingNameId] = useState<number | null>(null);
   const [nameDraft, setNameDraft] = useState("");
   const [showDietary, setShowDietary] = useState(false);
-  const [showConflict, setShowConflict] = useState(false);
-  const [showNutWarning, setShowNutWarning] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const [editingMember, setEditingMember] = useState(0);
   const [groupFlow, setGroupFlow] = useState(false);
+  const [useProfileRestrictions, setUseProfileRestrictions] = useState(false);
+  const [menuTargetMemberId, setMenuTargetMemberId] = useState(initialMembers[0].id);
+  const [returnToGroupSummary, setReturnToGroupSummary] = useState(false);
+  const [editingSummaryOrder, setEditingSummaryOrder] = useState(false);
   const [selectedSize, setSelectedSize] = useState("Grande");
   const [selectedTemperature, setSelectedTemperature] = useState("Hot");
   const [selectedMilk, setSelectedMilk] = useState("Oat milk");
   const [selectedSyrup, setSelectedSyrup] = useState("No syrup");
   const [selectedWhip, setSelectedWhip] = useState("Dairy whip");
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
 
   const currentMember = quickOrderMember ?? members[editingMember];
+  const currentDietaryTags =
+    quickOrderMember || useProfileRestrictions
+      ? profileTags
+      : [currentMember?.dietaryTag ?? "None"];
+  const dairyConflictTags = currentDietaryTags.filter(
+    (tag) =>
+      (tag === "Vegan" || tag === "Lactose intolerance") &&
+      (selectedMilk === "2% milk" || selectedWhip === "Dairy whip"),
+  );
+  const dairyConflict = dairyConflictTags.length > 0;
+  const dairyIngredientName = currentDietaryTags.includes("Lactose intolerance")
+    ? "lactose"
+    : "dairy";
+  const nutSyrupConflict =
+    currentDietaryTags.includes("Nut allergy") &&
+    selectedSyrup === "Hazelnut syrup";
   const orderedMembers = useMemo(
     () => members.filter((member) => member.added),
     [members],
   );
-  const subtotal = orderedMembers.reduce((total, member) => total + member.price, 0);
+  const subtotal = orderedMembers.reduce(
+    (total, member) => total + member.price * member.quantity,
+    0,
+  );
+  const orderedDrinkCount = orderedMembers.reduce(
+    (count, member) => count + member.quantity,
+    0,
+  );
+  const orderedMemberConflicts = orderedMembers.flatMap((member) =>
+    getDietaryConflicts(member).map((conflict) => ({ member, conflict })),
+  );
+  const cannotSubmitGroup =
+    orderedMemberConflicts.length > 0 || members.some((member) => !member.added);
+  const checkoutItems = quickOrderMember ? [quickOrderMember] : orderedMembers;
+  const checkoutDrinkCount = checkoutItems.reduce(
+    (count, member) => count + member.quantity,
+    0,
+  );
+  const checkoutTotal = checkoutItems.reduce(
+    (total, member) => total + member.price * member.quantity,
+    0,
+  );
+  const checkoutDetails = checkoutItems
+    .map(
+      (member) =>
+        `${member.name} (${
+          quickOrderMember
+            ? profileTags.filter((tag) => tag !== "None").join(", ") || "No restrictions"
+            : member.dietaryTag === "None"
+              ? "No restrictions"
+              : member.dietaryTag
+        }): ${member.quantity} × ${member.drink} (${member.milk}, ${member.whip})`,
+    )
+    .join("\n");
 
   function updateMember(index: number, updates: Partial<GroupMember>) {
     setMembers((current) =>
@@ -527,6 +635,7 @@ export default function App() {
         syrup: "No syrup",
         whip: "No topping",
         price: 3.45,
+        quantity: 1,
         added: false,
       },
     ]);
@@ -553,17 +662,27 @@ export default function App() {
     setNameDraft("");
   }
 
-  function beginCustomization(index: number, inGroupFlow: boolean) {
+  function beginCustomization(
+    index: number,
+    inGroupFlow: boolean,
+    fromGroupSummary = false,
+  ) {
     const member = members[index];
     if (!member) return;
     setQuickOrderMember(null);
     setEditingMember(index);
     setGroupFlow(inGroupFlow);
+    setUseProfileRestrictions(false);
+    setReturnToGroupSummary(fromGroupSummary);
+    setEditingSummaryOrder(fromGroupSummary);
     setSelectedSize(member.size);
-    setSelectedTemperature(member.temperature);
+    setSelectedTemperature(
+      hasFixedIcedTemperature(member.drink) ? "Iced" : member.temperature,
+    );
     setSelectedMilk(member.milk);
     setSelectedSyrup(member.syrup);
     setSelectedWhip(member.whip);
+    setSelectedQuantity(member.quantity);
     setScreen("customize");
   }
 
@@ -576,7 +695,7 @@ export default function App() {
       restaurant: item.restaurant,
       drink: item.drink,
       price: item.price,
-      temperature: item.temperature,
+      temperature: hasFixedIcedTemperature(item.drink) ? "Iced" : item.temperature,
       milk: item.milk,
       syrup: item.syrup,
       whip: item.whip,
@@ -591,16 +710,22 @@ export default function App() {
     setMenuRestaurantFilter(item.restaurant);
     setQuickOrderMember(null);
     setEditingMember(memberIndex);
-    setGroupFlow(false);
+    setGroupFlow(true);
+    setUseProfileRestrictions(false);
+    setReturnToGroupSummary(false);
+    setEditingSummaryOrder(false);
     setSelectedSize(updatedMember.size);
-    setSelectedTemperature(item.temperature);
+    setSelectedTemperature(updatedMember.temperature);
     setSelectedMilk(item.milk);
     setSelectedSyrup(item.syrup);
     setSelectedWhip(item.whip);
+    setSelectedQuantity(updatedMember.quantity);
     setScreen("customize");
   }
 
   function selectRestaurant(restaurant: string) {
+    const nextMember = members.find((member) => !member.added) ?? members[0];
+    if (nextMember) setMenuTargetMemberId(nextMember.id);
     setSelectedRestaurant(restaurant);
     setMenuRestaurantFilter(restaurant);
     setSearchQuery("");
@@ -619,33 +744,39 @@ export default function App() {
     const member = savedFavorite;
     setQuickOrderMember(member);
     setGroupFlow(false);
+    setUseProfileRestrictions(true);
     setSelectedSize(member.size);
     setSelectedTemperature(member.temperature);
     setSelectedMilk(member.milk);
     setSelectedSyrup(member.syrup);
     setSelectedWhip(member.whip);
+    setSelectedQuantity(member.quantity);
 
-    if (profileTags.includes("Vegan") && member.whip !== "Vegan whip") {
-      setShowConflict(true);
-    } else {
-      setScreen("orderSummary");
-    }
+    setScreen("orderSummary");
   }
 
   function addCurrentDrink() {
     if (!currentMember) return;
+    if (dairyConflict || nutSyrupConflict) return;
 
     updateMember(editingMember, {
       size: selectedSize,
-      temperature: selectedTemperature,
+      temperature: hasFixedIcedTemperature(currentMember.drink)
+        ? "Iced"
+        : selectedTemperature,
       milk: selectedMilk,
       syrup: selectedSyrup,
       whip: selectedWhip,
+      quantity: selectedQuantity,
       added: true,
     });
 
-    if (currentMember.dietaryTag === "Vegan" && selectedWhip !== "Vegan whip") {
-      setShowConflict(true);
+    const nextMember = groupFlow
+      ? members.findIndex((member, index) => index !== editingMember && !member.added)
+      : -1;
+    if (groupFlow && nextMember < 0) {
+      setScreen("groupSummary");
+      setActiveTab("Orders");
     } else {
       setScreen("orderSummary");
     }
@@ -662,7 +793,7 @@ export default function App() {
       }
       return;
     }
-    submitOrder();
+    setShowSubmitConfirmation(true);
   }
 
   function submitOrder() {
@@ -712,17 +843,32 @@ export default function App() {
     setQuickOrderMember(null);
     setGroupFlow(false);
     setShowDietary(false);
-    setShowConflict(false);
-    setShowNutWarning(false);
     setShowConfirmation(false);
+    setShowSubmitConfirmation(false);
   }
 
   function selectSyrup(syrup: string) {
-    if (syrup === "Hazelnut syrup" && currentMember?.dietaryTag === "Nut allergy") {
-      setShowNutWarning(true);
-      return;
-    }
     setSelectedSyrup(syrup);
+  }
+
+  function saveCustomizationDraft() {
+    if (!currentMember || quickOrderMember) return;
+    updateMember(editingMember, {
+      size: selectedSize,
+      temperature: hasFixedIcedTemperature(currentMember.drink)
+        ? "Iced"
+        : selectedTemperature,
+      milk: selectedMilk,
+      syrup: selectedSyrup,
+      whip: selectedWhip,
+      quantity: selectedQuantity,
+      added: currentMember.added,
+    });
+    const returnToSummary = returnToGroupSummary || editingSummaryOrder;
+    setScreen(returnToSummary ? "groupSummary" : "home");
+    setActiveTab(returnToSummary ? "Orders" : "Home");
+    setReturnToGroupSummary(false);
+    setEditingSummaryOrder(false);
   }
 
   function openTab(tab: string) {
@@ -731,6 +877,8 @@ export default function App() {
     if (tab === "Home") {
       setScreen("home");
     } else if (tab === "Menu") {
+      const nextMember = members.find((member) => !member.added) ?? members[0];
+      if (nextMember) setMenuTargetMemberId(nextMember.id);
       setScreen("menu");
     } else if (tab === "Orders") {
       setScreen("groupSummary");
@@ -867,16 +1015,19 @@ export default function App() {
     );
   }
 
-  function header(title: string, subtitle: string) {
+  function header(title: string, subtitle: string, onBack?: () => void) {
+    const handleBack =
+      onBack ??
+      (() => {
+        setScreen("home");
+        setActiveTab("Home");
+      });
     return (
       <View style={styles.header}>
         <Pressable
-          accessibilityLabel="Back to home"
+          accessibilityLabel={onBack ? "Back to group" : "Back to home"}
           accessibilityRole="button"
-          onPress={() => {
-            setScreen("home");
-            setActiveTab("Home");
-          }}
+          onPress={handleBack}
           style={styles.backButton}
         >
           <Text style={styles.backButtonText}>‹</Text>
@@ -903,10 +1054,17 @@ export default function App() {
   }
 
   function priceCard(items: GroupMember[]) {
-    const total = items.reduce((sum, item) => sum + item.price, 0);
+    const total = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+    const drinkCount = items.reduce((sum, item) => sum + item.quantity, 0);
     return (
       <View style={styles.card}>
-        <SummaryRow title={`Subtotal · ${items.length} drinks`} value={money(total)} />
+        <SummaryRow
+          title={`Subtotal · ${drinkCount} ${drinkCount === 1 ? "drink" : "drinks"}`}
+          value={money(total)}
+        />
         <SummaryRow title="Estimated tax" value={money(total * 0.0825)} />
         <View style={styles.divider} />
         <SummaryRow title="Total" value={money(total * 1.0825)} />
@@ -916,6 +1074,11 @@ export default function App() {
 
   function renderHome() {
     const favorite = savedFavorite;
+    const groupDietarySummary = [
+      ...new Set(members.map((member) => member.dietaryTag)),
+    ]
+      .map((tag) => (tag === "None" ? "No restrictions" : tag))
+      .join(" · ");
 
     return (
       <>
@@ -960,7 +1123,7 @@ export default function App() {
           <Text style={styles.sectionTitle}>Group order</Text>
           <Text style={styles.sectionCount}>
             {members.length} {members.length === 1 ? "person" : "people"} ·{" "}
-            {orderedMembers.length} drinks
+            {orderedDrinkCount} drinks
           </Text>
         </View>
         <View style={styles.crewBanner}>
@@ -983,7 +1146,7 @@ export default function App() {
           <Text style={styles.tagIcon}>◆</Text>
           <View style={styles.tagCopy}>
             <Text style={styles.crewTitle}>Set dietary tags</Text>
-            <Text style={styles.cardDetail}>Vegan · Nut allergy · No restrictions</Text>
+            <Text style={styles.cardDetail}>{groupDietarySummary}</Text>
           </View>
           <Text style={styles.mutedText}>›</Text>
         </Pressable>
@@ -998,7 +1161,7 @@ export default function App() {
           </Pressable>
           <Text style={styles.sectionCount}>
             {members.length} {members.length === 1 ? "person" : "people"} ·{" "}
-            {orderedMembers.length} drinks
+            {orderedDrinkCount} drinks
           </Text>
         </View>
         {members.map((member, index) => (
@@ -1083,7 +1246,7 @@ export default function App() {
               </Pressable>
             </View>
             <PrimaryButton
-              title="Customize drink"
+              title={member.added ? `Edit ${member.name}'s drink` : `Customize for ${member.name}`}
               secondary
               onPress={() => beginCustomization(index, false)}
             />
@@ -1099,6 +1262,13 @@ export default function App() {
 
   function renderMenu() {
     const query = searchQuery.trim().toLowerCase();
+    const selectedMemberIndex = members.findIndex(
+      (member) => member.id === menuTargetMemberId && !member.added,
+    );
+    const nextMemberIndex = members.findIndex((member) => !member.added);
+    const targetMemberIndex =
+      selectedMemberIndex >= 0 ? selectedMemberIndex : nextMemberIndex;
+    const targetMember = members[targetMemberIndex];
     const visibleDrinks = menuDrinks.filter(
       (item) =>
         (menuRestaurantFilter === allRestaurantsOption ||
@@ -1112,7 +1282,9 @@ export default function App() {
       <>
         {header(
           "Menu",
-          `${menuRestaurantFilter === allRestaurantsOption ? "All restaurants" : menuRestaurantFilter} · Select a drink for your group`,
+          `${menuRestaurantFilter === allRestaurantsOption ? "All restaurants" : menuRestaurantFilter} · ${
+            targetMember ? `Choose for ${targetMember.name}` : "All drinks added"
+          }`,
         )}
         {renderSearchBar()}
         <ChoiceSection
@@ -1121,16 +1293,61 @@ export default function App() {
           selected={menuRestaurantFilter}
           onSelect={selectMenuRestaurant}
         />
-        
+        <View style={styles.menuTargetCard}>
+          <Text style={styles.fieldLabel}>Ordering for</Text>
+          {members.filter((member) => !member.added).length > 0 ? (
+            <View style={styles.menuTargetChoices}>
+              {members.filter((member) => !member.added).map((member) => {
+                const selected = member.id === targetMember?.id;
+                return (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    key={member.id}
+                    onPress={() => setMenuTargetMemberId(member.id)}
+                    style={[
+                      styles.menuTargetChoice,
+                      selected && styles.menuTargetChoiceSelected,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.menuTargetName,
+                        selected && styles.menuTargetNameSelected,
+                      ]}
+                    >
+                      {member.name}
+                    </Text>
+                    <Badge tag={member.dietaryTag} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : (
+            <Text style={styles.cardDetail}>
+              Everyone has a drink. Review the group order to edit an existing one.
+            </Text>
+          )}
+        </View>
         {visibleDrinks.map((item) => {
-            const memberIndex = members.findIndex((member) => !member.added);
-            const targetIndex = memberIndex < 0 ? 0 : memberIndex;
             return (
               <Pressable
                 accessibilityRole="button"
+                accessibilityLabel={
+                  targetMember
+                    ? `Choose ${item.drink} for ${targetMember.name}`
+                    : `${item.drink}, no group members available`
+                }
+                disabled={!targetMember}
                 key={`${item.restaurant}-${item.drink}`}
-                onPress={() => chooseDrink(targetIndex, item)}
-                style={({ pressed }) => [styles.menuItem, pressed && styles.pressed]}
+                onPress={() => {
+                  if (targetMemberIndex >= 0) chooseDrink(targetMemberIndex, item);
+                }}
+                style={({ pressed }) => [
+                  styles.menuItem,
+                  !targetMember && styles.menuItemDisabled,
+                  pressed && styles.pressed,
+                ]}
               >
                 <DrinkArtwork drink={item.drink} size={58} />
                 <View style={styles.menuCopy}>
@@ -1142,7 +1359,9 @@ export default function App() {
                       : ""}
                   </Text>
                 </View>
-                <Text style={styles.chooseText}>Choose</Text>
+                <Text style={styles.chooseText}>
+                  {targetMember ? `Choose for ${targetMember.name}` : "Added"}
+                </Text>
               </Pressable>
             );
           })}
@@ -1207,6 +1426,13 @@ export default function App() {
             whether you’d like to switch to vegan whip.
           </Text>
           <View style={styles.divider} />
+          <Text style={styles.tipsTitle}>ⓘ  Lactose intolerance — dairy ingredients</Text>
+          <Text style={styles.cardDetail}>
+            2% milk and dairy whipped cream contain lactose. Choose oat milk and
+            vegan whip (or no topping) instead. Check ingredient details with a
+            barista.
+          </Text>
+          <View style={styles.divider} />
           <Text style={styles.tipsTitle}>ⓘ  Nut allergy — hazelnut alert</Text>
           <Text style={styles.cardDetail}>
             If someone with a nut allergy selects hazelnut syrup, we’ll show a
@@ -1224,34 +1450,81 @@ export default function App() {
     if (!currentMember) return null;
     return (
       <>
-        {header("Customize", `${currentMember.restaurant} · UTD Student Union`)}
+        {groupFlow && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={saveCustomizationDraft}
+            style={styles.backToGroup}
+          >
+            <Text style={styles.backToGroupText}>‹  Back to group</Text>
+          </Pressable>
+        )}
+        {header(
+          groupFlow ? "Group customize" : "Customize",
+          `${currentMember.restaurant} · UTD Student Union`,
+          saveCustomizationDraft,
+        )}
+        {groupFlow && (
+          <View style={styles.groupPersonCard}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>♙</Text>
+            </View>
+            <View style={styles.groupPersonCopy}>
+              <Text style={styles.memberName}>{currentMember.name}</Text>
+              <Text style={styles.cardDetail}>{currentMember.dietaryTag}</Text>
+            </View>
+          </View>
+        )}
         <View style={styles.drinkCard}>
           <DrinkArtwork drink={currentMember.drink} size={76} />
           <View style={styles.drinkCopy}>
             <Text style={styles.cardHeading}>{currentMember.drink}</Text>
             <Text style={styles.priceText}>{money(currentMember.price)}</Text>
             <Text style={styles.cardDetail}>
-              {currentMember.size} · {currentMember.temperature} · {currentMember.milk}
+              {currentMember.size} · {selectedTemperature} · {currentMember.milk}
             </Text>
           </View>
         </View>
+        {useProfileRestrictions && (
+          <View style={styles.profileRestrictionCard}>
+            <Text style={styles.fieldLabel}>Dietary checks for this order</Text>
+            <View style={styles.restrictionBadges}>
+              {currentDietaryTags.filter((tag) => tag !== "None").length > 0 ? (
+                currentDietaryTags
+                  .filter((tag) => tag !== "None")
+                  .map((tag) => <Badge key={tag} tag={tag} />)
+              ) : (
+                <Text style={styles.cardDetail}>No profile restrictions selected</Text>
+              )}
+            </View>
+          </View>
+        )}
         <ChoiceSection
           title="Size"
           options={["Tall", "Grande", "Venti"]}
           selected={selectedSize}
           onSelect={setSelectedSize}
+          optionDetails={{ Tall: "12 fl oz", Grande: "16 fl oz", Venti: "24 fl oz" }}
         />
-        <ChoiceSection
-          title="Temperature"
-          options={["Hot", "Iced"]}
-          selected={selectedTemperature}
-          onSelect={setSelectedTemperature}
-        />
+        {!hasFixedIcedTemperature(currentMember.drink) && (
+          <ChoiceSection
+            title="Temperature"
+            options={["Hot", "Iced"]}
+            selected={selectedTemperature}
+            onSelect={setSelectedTemperature}
+            optionDetails={{ Hot: "☕", Iced: "❄" }}
+          />
+        )}
         <ChoiceSection
           title="Milk"
           options={["Oat milk", "2% milk", "Almond milk", "No milk"]}
           selected={selectedMilk}
           onSelect={setSelectedMilk}
+          optionDetails={{
+            "Oat milk": "Plant-based",
+            "2% milk": "Contains dairy",
+            "Almond milk": "Plant-based",
+          }}
         />
         <ChoiceSection
           title="Syrup"
@@ -1264,13 +1537,89 @@ export default function App() {
           options={["Dairy whip", "Vegan whip", "No topping"]}
           selected={selectedWhip}
           onSelect={setSelectedWhip}
+          optionDetails={{
+            "Dairy whip": "Contains dairy",
+            "Vegan whip": "Plant-based",
+            "No topping": "No topping",
+          }}
         />
-        {currentMember.dietaryTag === "Vegan" && (
-          <Text style={styles.finePrint}>
-            Vegan preference: choose plant-based milk and vegan whip. Confirm
-            ingredients with the barista.
-          </Text>
+        {dairyConflict && (
+          <View style={styles.conflictNotice}>
+            <Text style={styles.conflictTitle}>
+              ⚠  Dairy conflicts with {dairyConflictTags.join(" & ")}
+            </Text>
+            <Text style={styles.cardDetail}>
+              {selectedMilk === "2% milk" && selectedWhip === "Dairy whip"
+                ? `2% milk and dairy whipped cream contain ${dairyIngredientName}. Choose oat milk and a dairy-free topping.`
+                : selectedMilk === "2% milk"
+                  ? `2% milk contains ${dairyIngredientName}. Choose oat milk instead.`
+                  : `Dairy whipped cream contains ${dairyIngredientName}. Choose vegan whip or no topping.`}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                if (selectedMilk === "2% milk") setSelectedMilk("Oat milk");
+                if (selectedWhip === "Dairy whip") {
+                  setSelectedWhip("Vegan whip");
+                }
+              }}
+              style={styles.conflictAction}
+            >
+              <Text style={styles.conflictActionText}>
+                {selectedMilk === "2% milk" && selectedWhip === "Dairy whip"
+                  ? "Switch to Oat Milk & Vegan Whip"
+                  : selectedMilk === "2% milk"
+                    ? "Switch to Oat Milk"
+                    : "Switch to Vegan Whip"}
+              </Text>
+            </Pressable>
+          </View>
         )}
+        {nutSyrupConflict && (
+          <View style={styles.conflictNotice}>
+            <Text style={styles.conflictTitle}>⚠  Hazelnut conflicts with Nut allergy</Text>
+            <Text style={styles.cardDetail}>
+              Hazelnut syrup is selected. Choose vanilla syrup instead to continue.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setSelectedSyrup("Vanilla syrup")}
+              style={styles.conflictAction}
+            >
+              <Text style={styles.conflictActionText}>Switch to Vanilla Syrup</Text>
+            </Pressable>
+          </View>
+        )}
+        <View style={styles.quantityCard}>
+          <View style={styles.quantityCopy}>
+            <Text style={styles.fieldLabel}>Quantity</Text>
+            <Text style={styles.cardDetail}>
+              {money(currentMember.price)} each · {money(currentMember.price * selectedQuantity)} total
+            </Text>
+          </View>
+          <View style={styles.quantityControls}>
+            <Pressable
+              accessibilityLabel="Decrease quantity"
+              accessibilityRole="button"
+              disabled={selectedQuantity <= 1}
+              onPress={() => setSelectedQuantity((quantity) => Math.max(1, quantity - 1))}
+              style={[styles.quantityButton, selectedQuantity <= 1 && styles.quantityButtonDisabled]}
+            >
+              <Text style={styles.quantityButtonText}>−</Text>
+            </Pressable>
+            <Text accessibilityLabel={`Quantity ${selectedQuantity}`} style={styles.quantityValue}>
+              {selectedQuantity}
+            </Text>
+            <Pressable
+              accessibilityLabel="Increase quantity"
+              accessibilityRole="button"
+              onPress={() => setSelectedQuantity((quantity) => quantity + 1)}
+              style={styles.quantityButton}
+            >
+              <Text style={styles.quantityButtonText}>＋</Text>
+            </Pressable>
+          </View>
+        </View>
       </>
     );
   }
@@ -1282,18 +1631,30 @@ export default function App() {
         {header("Order summary", `${currentMember.drink} · Ready to review`)}
         <View style={styles.card}>
           <View style={styles.summaryRow}>
-            <Text style={styles.cardHeading}>☕  {currentMember.drink}</Text>
-            <Text style={styles.cardHeading}>{money(currentMember.price)}</Text>
+            <Text style={styles.cardHeading}>
+              ☕  {currentMember.quantity} × {currentMember.drink}
+            </Text>
+            <Text style={styles.cardHeading}>
+              {money(currentMember.price * currentMember.quantity)}
+            </Text>
           </View>
           <View style={styles.summaryMemberHeader}>
-            {quickOrderMember
-              ? profileTags
-                  .filter((tag) => tag !== "None")
-                  .map((tag) => <Badge key={tag} tag={tag} />)
-              : <Badge tag={currentMember.dietaryTag} />}
+            {currentDietaryTags
+              .filter((tag) => tag !== "None")
+              .map((tag) => <Badge key={tag} tag={tag} />)}
           </View>
           <View style={styles.divider} />
-          <SummaryRow title="Size" value={`${currentMember.size} · 16 fl oz`} />
+          <SummaryRow title="Quantity" value={String(currentMember.quantity)} />
+          <SummaryRow
+            title="Size"
+            value={`${currentMember.size} · ${
+              currentMember.size === "Tall"
+                ? "12"
+                : currentMember.size === "Venti"
+                  ? "24"
+                  : "16"
+            } fl oz`}
+          />
           <SummaryRow title="Temperature" value={currentMember.temperature} />
           <SummaryRow title="Milk" value={currentMember.milk} />
           {currentMember.syrup !== "No syrup" && (
@@ -1308,36 +1669,97 @@ export default function App() {
   }
 
   function renderGroupSummary() {
+    const drinkCount = orderedMembers.reduce(
+      (count, member) => count + member.quantity,
+      0,
+    );
+    const membersWithoutDrinks = members.filter((member) => !member.added);
     return (
       <>
         {header(
           "Group summary",
-          `${members.length} members · ${orderedMembers.length} drinks · One pickup`,
+          `${members.length} people · ${drinkCount} drinks · Review each person`,
         )}
         <View style={styles.card}>
           {orderedMembers.length === 0 ? (
             <Text style={styles.cardDetail}>Your group order is empty.</Text>
           ) : (
-            orderedMembers.map((member, index) => (
-              <View key={member.id}>
-                {index > 0 && <View style={styles.divider} />}
-                <View style={styles.summaryMemberHeader}>
-                  <Text style={styles.cardHeading}>♙  {member.name}</Text>
-                  <Badge tag={member.dietaryTag} />
+            orderedMembers.map((member, index) => {
+              const memberIndex = members.findIndex(
+                (person) => person.id === member.id,
+              );
+              const conflicts = getDietaryConflicts(member);
+              return (
+                <View key={member.id} style={styles.groupSummaryItem}>
+                  {index > 0 && <View style={styles.divider} />}
+                  <View style={styles.summaryMemberHeader}>
+                    <Text style={styles.cardHeading}>♙  {member.name}</Text>
+                    <Badge tag={member.dietaryTag} />
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.bodyText}>
+                      {member.quantity} × {member.drink}
+                    </Text>
+                    <Text style={styles.bodyText}>
+                      {money(member.price * member.quantity)}
+                    </Text>
+                  </View>
+                  <Text style={styles.cardDetail}>
+                    {member.restaurant} · {member.size} · {member.temperature} · {member.milk}
+                    {member.syrup !== "No syrup" ? ` · ${member.syrup}` : ""} ·{" "}
+                    {member.whip}
+                  </Text>
+                  {conflicts.map((conflict) => (
+                    <Text key={conflict} style={styles.summaryConflictText}>
+                      ⚠ {conflict}
+                    </Text>
+                  ))}
+                  {memberIndex >= 0 && (
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() =>
+                        beginCustomization(memberIndex, true, true)
+                      }
+                      style={styles.editSummaryButton}
+                    >
+                      <Text style={styles.editSummaryButtonText}>
+                        Edit {member.name}’s drink
+                      </Text>
+                    </Pressable>
+                  )}
                 </View>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.bodyText}>1 × {member.drink}</Text>
-                  <Text style={styles.bodyText}>{money(member.price)}</Text>
-                </View>
-                <Text style={styles.cardDetail}>
-                  {member.restaurant} · {member.size} · {member.temperature} · {member.milk}
-                  {member.syrup !== "No syrup" ? ` · ${member.syrup}` : ""} ·{" "}
-                  {member.whip}
-                </Text>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
+        {membersWithoutDrinks.length > 0 && (
+          <View style={styles.card}>
+            <Text style={styles.cardHeading}>Drinks still needed</Text>
+            {membersWithoutDrinks.map((member, index) => {
+              const memberIndex = members.findIndex(
+                (person) => person.id === member.id,
+              );
+              return (
+                <View key={member.id}>
+                  {index > 0 && <View style={styles.divider} />}
+                  <View style={styles.summaryMemberHeader}>
+                    <Text style={styles.bodyText}>{member.name}</Text>
+                    <Badge tag={member.dietaryTag} />
+                  </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => beginCustomization(memberIndex, true)}
+                    style={styles.editSummaryButton}
+                  >
+                    <Text style={styles.editSummaryButtonText}>
+                      Choose a drink for {member.name}
+                    </Text>
+                  </Pressable>
+                </View>
+              );
+            })}
+          </View>
+        )}
         <Text style={styles.finePrint}>
           Dietary labels are not a guarantee of allergen safety. Shared equipment
           may cause cross-contact. Confirm ingredients and preparation with a
@@ -1361,24 +1783,38 @@ export default function App() {
           ) : (
             recentOrders.map((order) => {
               const total = order.items.reduce(
-                (sum, item) => sum + item.price,
+                (sum, item) => sum + item.price * item.quantity,
+                0,
+              );
+              const orderDrinkCount = order.items.reduce(
+                (count, item) => count + item.quantity,
                 0,
               );
               return (
                 <View key={order.id} style={styles.recentOrderCard}>
                   <View style={styles.summaryRow}>
                     <Text style={styles.cardHeading}>
-                      {order.items.length}{" "}
-                      {order.items.length === 1 ? "drink" : "drinks"}
+                      {orderDrinkCount}{" "}
+                      {orderDrinkCount === 1 ? "drink" : "drinks"}
                     </Text>
                     <Text style={styles.cardHeading}>{money(total)}</Text>
                   </View>
                   <Text style={styles.cardDetail}>{order.placedAt}</Text>
-                  <Text style={styles.cardDetail} numberOfLines={2}>
-                    {order.items
-                      .map((item) => `${item.name}: ${item.drink} (${item.restaurant})`)
-                      .join(" · ")}
-                  </Text>
+                  {order.items.map((item) => (
+                    <View key={item.id} style={styles.recentOrderItem}>
+                      <View style={styles.summaryMemberHeader}>
+                        <Text style={styles.memberName}>{item.name}</Text>
+                        <Badge tag={item.dietaryTag} />
+                      </View>
+                      <Text style={styles.cardDetail}>
+                        {item.quantity} × {item.drink} · {item.restaurant}
+                      </Text>
+                      <Text style={styles.cardDetail}>
+                        {item.milk} · {item.whip}
+                        {item.syrup !== "No syrup" ? ` · ${item.syrup}` : ""}
+                      </Text>
+                    </View>
+                  ))}
                   <PrimaryButton
                     title="Reorder"
                     secondary
@@ -1434,9 +1870,38 @@ export default function App() {
       );
     }
     if (screen === "customize" && currentMember) {
+      const hasConflict = dairyConflict || nutSyrupConflict;
+      if (editingSummaryOrder) {
+        return (
+          <PrimaryButton
+            title={
+              nutSyrupConflict
+                ? "Resolve syrup conflict to save"
+                : dairyConflict
+                  ? "Resolve dairy conflict to save"
+                  : `Save ${currentMember.name}'s changes`
+            }
+            disabled={hasConflict}
+            onPress={saveCustomizationDraft}
+          />
+        );
+      }
+      const hasMoreGroupMembers = members.some(
+        (member, index) => index !== editingMember && !member.added,
+      );
+      const title = nutSyrupConflict
+        ? "Resolve syrup conflict to add"
+        : dairyConflict
+          ? "Resolve dairy conflict to add"
+          : groupFlow
+            ? hasMoreGroupMembers
+              ? `Add ${currentMember.name}'s drink`
+              : "Add & review group order"
+            : `Add to cart · ${money(currentMember.price * selectedQuantity)}`;
       return (
         <PrimaryButton
-          title={`Add to cart · ${money(currentMember.price)}`}
+          title={title}
+          disabled={hasConflict}
           onPress={addCurrentDrink}
         />
       );
@@ -1448,7 +1913,7 @@ export default function App() {
           ? `Continue with ${members[nextMember].name}`
           : groupFlow
             ? "Review group order"
-            : `Pay & submit · ${money(currentMember.price * 1.0825)}`;
+            : `Pay & submit · ${money(currentMember.price * currentMember.quantity * 1.0825)}`;
       return (
         <>
           <PrimaryButton title={title} onPress={continueAfterSummary} />
@@ -1470,8 +1935,15 @@ export default function App() {
         <>
           {orderedMembers.length > 0 && (
             <PrimaryButton
-              title={`Pay & submit group · ${money(subtotal * 1.0825)}`}
-              onPress={submitOrder}
+              title={
+                orderedMemberConflicts.length > 0
+                  ? "Resolve conflicts before checkout"
+                  : members.some((member) => !member.added)
+                    ? "Add the remaining drinks first"
+                    : `Review & place group order · ${money(subtotal * 1.0825)}`
+              }
+              disabled={cannotSubmitGroup}
+              onPress={() => setShowSubmitConfirmation(true)}
             />
           )}
           <Pressable
@@ -1830,39 +2302,20 @@ export default function App() {
           {renderTabs()}
           {renderDietaryModal()}
           {renderPromptModal({
-            visible: showConflict,
-            title: "Switch to vegan whip?",
+            visible: showSubmitConfirmation,
+            title: "Review your order",
             message:
-              "Your Vegan preference may conflict with dairy whipped cream. Confirm ingredients and cross-contact risks with the barista.",
-            primaryTitle: "Switch to Vegan Whip",
+              `${checkoutDrinkCount} ${checkoutDrinkCount === 1 ? "drink" : "drinks"} · ` +
+              `${money(checkoutTotal * 1.0825)} including estimated tax\n\n` +
+              `${checkoutDetails}\n\n` +
+              "Pickup: Student Union counter. Dietary labels are guidance only; confirm ingredients and cross-contact with the barista.",
+            primaryTitle: "Confirm & place order",
             onPrimary: () => {
-              if (quickOrderMember) {
-                setQuickOrderMember({ ...quickOrderMember, whip: "Vegan whip" });
-              } else {
-                updateMember(editingMember, { whip: "Vegan whip" });
-              }
-              setSelectedWhip("Vegan whip");
-              setShowConflict(false);
-              setScreen("orderSummary");
+              setShowSubmitConfirmation(false);
+              submitOrder();
             },
-            secondaryTitle: "Keep dairy whip",
-            onSecondary: () => {
-              setShowConflict(false);
-              setScreen("orderSummary");
-            },
-          })}
-          {renderPromptModal({
-            visible: showNutWarning,
-            title: "Hazelnut allergy warning",
-            message:
-              "Hazelnut syrup may conflict with this nut-allergy preference. Choose vanilla syrup instead, and confirm ingredients and cross-contact risks with the barista.",
-            primaryTitle: "Switch to Vanilla Syrup",
-            onPrimary: () => {
-              setSelectedSyrup("Vanilla syrup");
-              setShowNutWarning(false);
-            },
-            secondaryTitle: "Cancel",
-            onSecondary: () => setShowNutWarning(false),
+            secondaryTitle: "Review order",
+            onSecondary: () => setShowSubmitConfirmation(false),
           })}
           {renderPromptModal({
             visible: showConfirmation,
@@ -2066,6 +2519,27 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 2,
   },
+  backToGroup: {
+    alignSelf: "flex-start",
+    paddingVertical: 2,
+  },
+  backToGroupText: {
+    color: colors.green,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  groupPersonCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
+    padding: 11,
+    borderRadius: 14,
+    backgroundColor: colors.greenSoft,
+  },
+  groupPersonCopy: {
+    flex: 1,
+    gap: 2,
+  },
   crewBanner: {
     flexDirection: "row",
     alignItems: "center",
@@ -2085,8 +2559,8 @@ const styles = StyleSheet.create({
   },
   cardDetail: {
     color: colors.muted,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 12,
+    lineHeight: 17,
   },
   tagSettings: {
     flexDirection: "row",
@@ -2120,7 +2594,7 @@ const styles = StyleSheet.create({
   },
   sectionCount: {
     color: colors.green,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
     marginLeft: "auto",
   },
@@ -2132,7 +2606,7 @@ const styles = StyleSheet.create({
   },
   addMemberButtonText: {
     color: colors.green,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
   },
   memberCard: {
@@ -2195,12 +2669,12 @@ const styles = StyleSheet.create({
   },
   memberActionText: {
     color: colors.green,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "600",
   },
   removeMemberText: {
     color: colors.warning,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "600",
   },
   disabledActionText: {
@@ -2209,7 +2683,7 @@ const styles = StyleSheet.create({
   },
   memberName: {
     color: colors.text,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "700",
   },
   badge: {
@@ -2225,7 +2699,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: colors.green,
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "600",
   },
   warningText: {
@@ -2245,6 +2719,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
+  primaryButtonDisabled: {
+    backgroundColor: "#E6E7E1",
+  },
+  primaryButtonTextDisabled: {
+    color: colors.muted,
+  },
   secondaryButton: {
     backgroundColor: colors.greenSoft,
     borderWidth: 1,
@@ -2258,8 +2738,8 @@ const styles = StyleSheet.create({
   },
   finePrint: {
     color: colors.muted,
-    fontSize: 10,
-    lineHeight: 15,
+    fontSize: 11,
+    lineHeight: 17,
   },
   menuItem: {
     flexDirection: "row",
@@ -2275,8 +2755,58 @@ const styles = StyleSheet.create({
   },
   chooseText: {
     color: colors.green,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
+  },
+  menuTargetCard: {
+    gap: 9,
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: colors.white,
+  },
+  menuTargetChoices: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  menuTargetChoice: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 18,
+    backgroundColor: colors.white,
+  },
+  menuTargetChoiceSelected: {
+    borderColor: "#9BB6A5",
+    backgroundColor: colors.greenSoft,
+  },
+  menuTargetName: {
+    color: colors.text,
+    fontSize: 12,
+  },
+  menuTargetNameSelected: {
+    color: colors.green,
+    fontWeight: "700",
+  },
+  menuItemDisabled: {
+    opacity: 0.5,
+  },
+  profileRestrictionCard: {
+    gap: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 14,
+    backgroundColor: colors.white,
+  },
+  restrictionBadges: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
   },
   profileHero: {
     flexDirection: "row",
@@ -2362,6 +2892,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: colors.white,
   },
+  recentOrderItem: {
+    gap: 4,
+    paddingVertical: 7,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.line,
+  },
   tipsTitle: {
     color: colors.green,
     fontSize: 12,
@@ -2400,17 +2936,31 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: colors.white,
   },
+  choiceHeading: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  chooseHint: {
+    color: colors.muted,
+    fontSize: 10,
+  },
   choiceRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 7,
   },
   choice: {
+    flexGrow: 1,
+    minWidth: 70,
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.line,
-    borderRadius: 18,
-    paddingHorizontal: 11,
-    paddingVertical: 8,
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 9,
     backgroundColor: colors.white,
   },
   choiceSelected: {
@@ -2420,6 +2970,13 @@ const styles = StyleSheet.create({
   choiceText: {
     color: colors.muted,
     fontSize: 11,
+    textAlign: "center",
+  },
+  choiceDetail: {
+    color: colors.muted,
+    fontSize: 10,
+    marginTop: 2,
+    textAlign: "center",
   },
   choiceTextSelected: {
     color: colors.green,
@@ -2430,6 +2987,90 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 17,
     backgroundColor: colors.white,
+  },
+  conflictNotice: {
+    gap: 7,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: colors.warningSoft,
+  },
+  conflictTitle: {
+    color: colors.warning,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  conflictAction: {
+    alignSelf: "flex-start",
+    paddingVertical: 3,
+  },
+  conflictActionText: {
+    color: colors.green,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  groupSummaryItem: {
+    gap: 7,
+  },
+  summaryConflictText: {
+    color: colors.warning,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "600",
+  },
+  editSummaryButton: {
+    alignSelf: "flex-start",
+    minHeight: 32,
+    justifyContent: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+  },
+  editSummaryButtonText: {
+    color: colors.green,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  quantityCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: colors.white,
+  },
+  quantityCopy: {
+    flex: 1,
+    gap: 4,
+  },
+  quantityControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  quantityButton: {
+    width: 30,
+    height: 30,
+    borderWidth: 1,
+    borderColor: "#A1B5A4",
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quantityButtonDisabled: {
+    opacity: 0.4,
+  },
+  quantityButtonText: {
+    color: colors.green,
+    fontSize: 16,
+    fontWeight: "700",
+    lineHeight: 20,
+  },
+  quantityValue: {
+    minWidth: 14,
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: "600",
+    textAlign: "center",
   },
   summaryRow: {
     flexDirection: "row",
@@ -2488,7 +3129,7 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     color: colors.muted,
-    fontSize: 9,
+    fontSize: 10,
   },
   tabActive: {
     color: colors.green,
@@ -2551,7 +3192,7 @@ const styles = StyleSheet.create({
   },
   dietarySelectedBadgeText: {
     color: colors.green,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "600",
   },
   dietaryDivider: {
@@ -2578,7 +3219,7 @@ const styles = StyleSheet.create({
   },
   dietaryChoiceText: {
     color: colors.muted,
-    fontSize: 10,
+    fontSize: 11,
   },
   dietaryChoiceTextSelected: {
     color: colors.white,
