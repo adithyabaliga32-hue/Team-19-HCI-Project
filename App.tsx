@@ -27,8 +27,7 @@ type Screen =
   | "profile"
   | "customize"
   | "orderSummary"
-  | "groupSummary"
-  | "groupSetup";
+  | "groupSummary";
 
 type DietaryTag =
   | "Vegan"
@@ -866,7 +865,7 @@ export default function App() {
       added: currentMember.added,
     });
     const returnToSummary = returnToGroupSummary || editingSummaryOrder;
-    setScreen(returnToSummary ? "groupSummary" : "groupSetup");
+    setScreen(returnToSummary ? "groupSummary" : "home");
     setActiveTab(returnToSummary ? "Orders" : "Home");
     setReturnToGroupSummary(false);
     setEditingSummaryOrder(false);
@@ -1075,9 +1074,12 @@ export default function App() {
   function renderRestaurants() {
     return (
       <>
-        {header("Nearby restaurants", "Choose a spot near UT Dallas")}
+        <View style={styles.sectionHeading}>
+          <Text style={styles.sectionTitle}>Nearby restaurants</Text>
+        </View>
+        <Text style={styles.cardDetail}>Choose a spot near UT Dallas</Text>
   
-        {["Starbucks", "TeaCo"].map((restaurant) => (
+        {restaurants.map((restaurant) => (
           <Pressable
             key={restaurant}
             accessibilityRole="button"
@@ -1101,12 +1103,10 @@ export default function App() {
 
     return (
       <>
-        {header("Group setup", "Manage participants and dietary restrictions", () => {
-          setScreen("menu");
-          setActiveTab("Menu");
-        })}
+        {header("ServeFlow", "UT Dallas · Your campus orders")}
         {renderSearchBar()}
         {renderHomeSearchResults()}
+        {renderRestaurants()}
         <View style={styles.sectionHeading}>
           <Text style={styles.sectionTitle}>Your usual</Text>
         </View>
@@ -1131,15 +1131,6 @@ export default function App() {
             title="Quick order"
             onPress={quickOrder}
           />
-        </View>
-        <View style={styles.sectionHeading}>
-          <Text style={styles.sectionTitle}>Explore the menu</Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => openTab("Menu")}
-          >
-            <Text style={styles.chooseText}>See drinks  ›</Text>
-          </Pressable>
         </View>
         <View style={styles.sectionHeading}>
           <Text style={styles.sectionTitle}>Group order</Text>
@@ -1311,7 +1302,10 @@ export default function App() {
         <PrimaryButton
           title="Manage group & dietary restrictions"
           secondary
-          onPress={() => setScreen("groupSetup")}
+          onPress={() => {
+            setScreen("home");
+            setActiveTab("Home");
+          }}
         />
         {renderSearchBar()}
         <ChoiceSection
@@ -1710,7 +1704,10 @@ export default function App() {
         <PrimaryButton
           title="Manage group & dietary restrictions"
           secondary
-          onPress={() => setScreen("groupSetup")}
+          onPress={() => {
+            setScreen("home");
+            setActiveTab("Home");
+          }}
         />
         <View style={styles.card}>
           {orderedMembers.length === 0 ? (
@@ -1864,8 +1861,6 @@ export default function App() {
   function pageContent() {
     switch (screen) {
       case "home":
-        return renderRestaurants();
-      case "groupSetup":
         return renderHome();
       case "menu":
         return renderMenu();
@@ -1883,9 +1878,7 @@ export default function App() {
   }
 
   function bottomActions() {
-    if (screen === "home") return null;
-
-    if (screen === "groupSetup") {
+    if (screen === "home") {
       return (
         <PrimaryButton
           title="Continue to drink menu"
