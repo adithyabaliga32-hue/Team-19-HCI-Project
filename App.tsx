@@ -110,6 +110,12 @@ const menuDrinks: MenuDrink[] = [
   { restaurant: "Dutch Bros", drink: "Caramelizer", price: 5.75, temperature: "Iced", milk: "2% milk", syrup: "Caramel syrup", whip: "Dairy whip" },
   { restaurant: "Dutch Bros", drink: "Kicker", price: 5.45, temperature: "Iced", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
   { restaurant: "Dutch Bros", drink: "Annihilator", price: 5.75, temperature: "Iced", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "TeaCo", drink: "Brown Milk Sugar Boba", price: 5.95, temperature: "Iced", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "TeaCo", drink: "Black Milk Tea", price: 5.25, temperature: "Iced", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "TeaCo", drink: "Matcha Milk Tea", price: 5.75, temperature: "Iced", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "TeaCo", drink: "Strawberry Milk Tea", price: 5.75, temperature: "Iced", milk: "2% milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "TeaCo", drink: "Peach Iced Tea", price: 4.25, temperature: "Iced", milk: "No milk", syrup: "No syrup", whip: "No topping" },
+  { restaurant: "TeaCo", drink: "Honey Lemon Tea", price: 4.25, temperature: "Hot", milk: "No milk", syrup: "No syrup", whip: "No topping" },
 ];
 
 const colors = {
@@ -261,6 +267,12 @@ function DrinkArtwork({ drink, size }: { drink: string; size: number }) {
     "Frozen Coffee": require("./assets/drinks/dunkin-frozen-coffee.png"),
     "Caramel Craze Latte": require("./assets/drinks/dunkin-caramel-craze-latte.png"),
     "Original Blend Iced Coffee": require("./assets/drinks/dunkin-original-blend-iced-coffee.png"),
+    "Brown Milk Sugar Boba": require("./assets/drinks/teaco-brown-milk-sugar-boba.png"),
+    "Black Milk Tea": require("./assets/drinks/teaco-black-milk-tea.png"),
+    "Matcha Milk Tea": require("./assets/drinks/teaco-matcha-milk-tea.png"),
+    "Strawberry Milk Tea": require("./assets/drinks/teaco-strawberry-milk-tea.png"),
+    "Peach Iced Tea": require("./assets/drinks/teaco-peach-iced-tea.png"),
+    "Honey Lemon Tea": require("./assets/drinks/teaco-honey-lemon-tea.png"),
   };
   const photo = photoByDrink[drink];
 
