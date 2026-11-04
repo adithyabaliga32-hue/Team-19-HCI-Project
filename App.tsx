@@ -86,7 +86,7 @@ function getDietaryConflicts(member: GroupMember) {
   return conflicts;
 }
 
-const restaurants = ["Starbucks", "Dunkin'", "Dutch Bros"];
+const restaurants = ["Starbucks", "TeaCo"];
 const allRestaurantsOption = "All";
 
 function hasFixedIcedTemperature(drink: string) {
@@ -1071,7 +1071,25 @@ export default function App() {
       </View>
     );
   }
-
+  function renderRestaurants() {
+    return (
+      <>
+        {header("Nearby restaurants", "Choose a spot near UT Dallas")}
+  
+        {["Starbucks", "TeaCo"].map((restaurant) => (
+          <Pressable
+            key={restaurant}
+            accessibilityRole="button"
+            onPress={() => selectRestaurant(restaurant)}
+            style={styles.card}
+          >
+            <Text style={styles.cardHeading}>{restaurant}</Text>
+            <Text style={styles.cardDetail}>View menu ›</Text>
+          </Pressable>
+        ))}
+      </>
+    );
+  }
   function renderHome() {
     const favorite = savedFavorite;
     const groupDietarySummary = [
@@ -1832,7 +1850,7 @@ export default function App() {
   function pageContent() {
     switch (screen) {
       case "home":
-        return renderHome();
+        return renderRestaurants();
       case "menu":
         return renderMenu();
       case "profile":
@@ -1849,26 +1867,8 @@ export default function App() {
   }
 
   function bottomActions() {
-    if (screen === "home") {
-      const nextMember = members.findIndex((member) => !member.added);
-      return (
-        <PrimaryButton
-          title={
-            nextMember < 0
-              ? "Review group order"
-              : `Start with ${members[nextMember].name}  ›`
-          }
-          onPress={() => {
-            if (nextMember < 0) {
-              setScreen("groupSummary");
-              setActiveTab("Orders");
-            } else {
-              beginCustomization(nextMember, true);
-            }
-          }}
-        />
-      );
-    }
+    if (screen === "home") return null;
+
     if (screen === "customize" && currentMember) {
       const hasConflict = dairyConflict || nutSyrupConflict;
       if (editingSummaryOrder) {
