@@ -27,7 +27,8 @@ type Screen =
   | "profile"
   | "customize"
   | "orderSummary"
-  | "groupSummary";
+  | "groupSummary"
+  | "groupSetup";
 
 type DietaryTag =
   | "Vegan"
@@ -865,7 +866,7 @@ export default function App() {
       added: currentMember.added,
     });
     const returnToSummary = returnToGroupSummary || editingSummaryOrder;
-    setScreen(returnToSummary ? "groupSummary" : "home");
+    setScreen(returnToSummary ? "groupSummary" : "groupSetup");
     setActiveTab(returnToSummary ? "Orders" : "Home");
     setReturnToGroupSummary(false);
     setEditingSummaryOrder(false);
@@ -996,7 +997,7 @@ export default function App() {
           <Pressable
             accessibilityRole="button"
             key={member.id}
-            onPress={() => beginCustomization(index, false)}
+            onPress={() => beginCustomization(index, true, members[index].added)}
             style={styles.searchResult}
           >
             <View style={styles.searchResultCopy}>
@@ -1100,7 +1101,10 @@ export default function App() {
 
     return (
       <>
-        {header("ServeFlow", "UTD Student Union")}
+        {header("Group setup", "Manage participants and dietary restrictions", () => {
+          setScreen("menu");
+          setActiveTab("Menu");
+        })}
         {renderSearchBar()}
         {renderHomeSearchResults()}
         <View style={styles.sectionHeading}>
@@ -1266,7 +1270,7 @@ export default function App() {
             <PrimaryButton
               title={member.added ? `Edit ${member.name}'s drink` : `Customize for ${member.name}`}
               secondary
-              onPress={() => beginCustomization(index, false)}
+              onPress={() => beginCustomization(index, true, members[index].added)}
             />
           </View>
         ))}
@@ -1304,6 +1308,11 @@ export default function App() {
             targetMember ? `Choose for ${targetMember.name}` : "All drinks added"
           }`,
         )}
+        <PrimaryButton
+          title="Manage group & dietary restrictions"
+          secondary
+          onPress={() => setScreen("groupSetup")}
+        />
         {renderSearchBar()}
         <ChoiceSection
           title="Choose a restaurant"
@@ -1698,6 +1707,11 @@ export default function App() {
           "Group summary",
           `${members.length} people · ${drinkCount} drinks · Review each person`,
         )}
+        <PrimaryButton
+          title="Manage group & dietary restrictions"
+          secondary
+          onPress={() => setScreen("groupSetup")}
+        />
         <View style={styles.card}>
           {orderedMembers.length === 0 ? (
             <Text style={styles.cardDetail}>Your group order is empty.</Text>
@@ -1851,6 +1865,8 @@ export default function App() {
     switch (screen) {
       case "home":
         return renderRestaurants();
+      case "groupSetup":
+        return renderHome();
       case "menu":
         return renderMenu();
       case "profile":
@@ -1868,6 +1884,20 @@ export default function App() {
 
   function bottomActions() {
     if (screen === "home") return null;
+
+    if (screen === "groupSetup") {
+      return (
+        <PrimaryButton
+          title="Continue to drink menu"
+          onPress={() => {
+            const nextMember = members.find((member) => !member.added);
+            if (nextMember) setMenuTargetMemberId(nextMember.id);
+            setScreen(nextMember ? "menu" : "groupSummary");
+            setActiveTab(nextMember ? "Menu" : "Orders");
+          }}
+        />
+      );
+    }
 
     if (screen === "customize" && currentMember) {
       const hasConflict = dairyConflict || nutSyrupConflict;
