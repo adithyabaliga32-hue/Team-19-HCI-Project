@@ -537,6 +537,9 @@ export default function App() {
   const [groupFlow, setGroupFlow] = useState(false);
   const [useProfileRestrictions, setUseProfileRestrictions] = useState(false);
   const [menuTargetMemberId, setMenuTargetMemberId] = useState(initialMembers[0].id);
+  const [switchingDrinkForMemberId, setSwitchingDrinkForMemberId] = useState<
+    number | null
+  >(null);
   const [returnToGroupSummary, setReturnToGroupSummary] = useState(false);
   const [editingSummaryOrder, setEditingSummaryOrder] = useState(false);
   const [selectedSize, setSelectedSize] = useState("Grande");
@@ -689,17 +692,26 @@ export default function App() {
   function chooseDrink(memberIndex: number, item: MenuDrink) {
     const member = members[memberIndex];
     if (!member) return;
+    const switchingCurrentDrink = switchingDrinkForMemberId === member.id;
+    const sameDrink =
+      switchingCurrentDrink &&
+      member.restaurant === item.restaurant &&
+      member.drink === item.drink;
 
     const updatedMember: GroupMember = {
       ...member,
       restaurant: item.restaurant,
       drink: item.drink,
       price: item.price,
-      temperature: hasFixedIcedTemperature(item.drink) ? "Iced" : item.temperature,
-      milk: item.milk,
-      syrup: item.syrup,
-      whip: item.whip,
-      added: false,
+      temperature: hasFixedIcedTemperature(item.drink)
+        ? "Iced"
+        : sameDrink
+          ? member.temperature
+          : item.temperature,
+      milk: sameDrink ? member.milk : item.milk,
+      syrup: sameDrink ? member.syrup : item.syrup,
+      whip: sameDrink ? member.whip : item.whip,
+      added: switchingCurrentDrink ? member.added : false,
     };
     setMembers((current) =>
       current.map((currentMember, index) =>
@@ -710,17 +722,30 @@ export default function App() {
     setMenuRestaurantFilter(item.restaurant);
     setQuickOrderMember(null);
     setEditingMember(memberIndex);
-    setGroupFlow(true);
+    if (!switchingCurrentDrink) {
+      setGroupFlow(true);
+      setReturnToGroupSummary(false);
+      setEditingSummaryOrder(false);
+    }
     setUseProfileRestrictions(false);
-    setReturnToGroupSummary(false);
-    setEditingSummaryOrder(false);
+    setSwitchingDrinkForMemberId(null);
     setSelectedSize(updatedMember.size);
     setSelectedTemperature(updatedMember.temperature);
-    setSelectedMilk(item.milk);
-    setSelectedSyrup(item.syrup);
-    setSelectedWhip(item.whip);
+    setSelectedMilk(updatedMember.milk);
+    setSelectedSyrup(updatedMember.syrup);
+    setSelectedWhip(updatedMember.whip);
     setSelectedQuantity(updatedMember.quantity);
     setScreen("customize");
+  }
+
+  function switchCurrentDrink() {
+    if (!currentMember) return;
+    setSwitchingDrinkForMemberId(currentMember.id);
+    setMenuTargetMemberId(currentMember.id);
+    setMenuRestaurantFilter(allRestaurantsOption);
+    setSearchQuery("");
+    setScreen("menu");
+    setActiveTab("Menu");
   }
 
   function selectRestaurant(restaurant: string) {
@@ -874,6 +899,7 @@ export default function App() {
   function openTab(tab: string) {
     setActiveTab(tab);
     setGroupFlow(false);
+    setSwitchingDrinkForMemberId(null);
     if (tab === "Home") {
       setScreen("home");
     } else if (tab === "Menu") {
@@ -1275,13 +1301,17 @@ export default function App() {
 
   function renderMenu() {
     const query = searchQuery.trim().toLowerCase();
-    const selectedMemberIndex = members.findIndex(
-      (member) => member.id === menuTargetMemberId && !member.added,
+    const targetMembers = members.filter((member) =>
+      switchingDrinkForMemberId === null
+        ? !member.added
+        : member.id === switchingDrinkForMemberId,
     );
-    const nextMemberIndex = members.findIndex((member) => !member.added);
-    const targetMemberIndex =
-      selectedMemberIndex >= 0 ? selectedMemberIndex : nextMemberIndex;
-    const targetMember = members[targetMemberIndex];
+    const targetMember =
+      targetMembers.find((member) => member.id === menuTargetMemberId) ??
+      targetMembers[0];
+    const targetMemberIndex = members.findIndex(
+      (member) => member.id === targetMember?.id,
+    );
     const visibleDrinks = menuDrinks.filter(
       (item) =>
         (menuRestaurantFilter === allRestaurantsOption ||
@@ -1296,13 +1326,23 @@ export default function App() {
         {header(
           "Menu",
           `${menuRestaurantFilter === allRestaurantsOption ? "All restaurants" : menuRestaurantFilter} · ${
-            targetMember ? `Choose for ${targetMember.name}` : "All drinks added"
+            targetMember
+              ? `Choose for ${targetMember.name}`
+              : "All drinks added"
           }`,
+          switchingDrinkForMemberId !== null
+            ? () => {
+                setSwitchingDrinkForMemberId(null);
+                setActiveTab(editingSummaryOrder ? "Orders" : "Home");
+                setScreen("customize");
+              }
+            : undefined,
         )}
         <PrimaryButton
           title="Manage group & dietary restrictions"
           secondary
           onPress={() => {
+            setSwitchingDrinkForMemberId(null);
             setScreen("home");
             setActiveTab("Home");
           }}
@@ -1316,9 +1356,9 @@ export default function App() {
         />
         <View style={styles.menuTargetCard}>
           <Text style={styles.fieldLabel}>Ordering for</Text>
-          {members.filter((member) => !member.added).length > 0 ? (
+          {targetMembers.length > 0 ? (
             <View style={styles.menuTargetChoices}>
-              {members.filter((member) => !member.added).map((member) => {
+              {targetMembers.map((member) => {
                 const selected = member.id === targetMember?.id;
                 return (
                   <Pressable
@@ -1506,6 +1546,11 @@ export default function App() {
             </Text>
           </View>
         </View>
+        <PrimaryButton
+          title="Switch drink"
+          secondary
+          onPress={switchCurrentDrink}
+        />
         {useProfileRestrictions && (
           <View style={styles.profileRestrictionCard}>
             <Text style={styles.fieldLabel}>Dietary checks for this order</Text>
