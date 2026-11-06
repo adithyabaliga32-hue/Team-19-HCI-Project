@@ -109,14 +109,15 @@ export default function MenuScreen() {
     setActiveMemberId,
     updateMemberCustomization,
   } = useCart();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [menuFilter, setMenuFilter] = useState(allRestaurantsOption);
-  const [targetMemberId, setTargetMemberId] = useState(activeMemberId);
-  useFocusEffect(
-    useCallback(() => {
-      setTargetMemberId(activeMemberId);
-    }, [activeMemberId]),
-  );
+const [searchQuery, setSearchQuery] = useState("");
+const [menuFilter, setMenuFilter] = useState(allRestaurantsOption);
+const [targetMemberId, setTargetMemberId] = useState(activeMemberId);
+
+useFocusEffect(
+  useCallback(() => {
+    setTargetMemberId(activeMemberId);
+  }, [activeMemberId]),
+);
 
   const targetMember = useMemo(
     () => members.find((m) => m.id === targetMemberId) ?? members[0],
@@ -134,6 +135,11 @@ export default function MenuScreen() {
           item.drink.toLowerCase().includes(query)),
     );
   }, [menuFilter, searchQuery]);
+
+  const handleSelectMember = (id: number) => {
+    setTargetMemberId(id);
+    setActiveMemberId(id);
+  };
 
   const handleSelectDrink = useCallback(
     (item: MenuDrink) => {
@@ -213,7 +219,7 @@ export default function MenuScreen() {
             return (
               <Pressable
                 key={m.id}
-                onPress={() => setTargetMemberId(m.id)}
+                onPress={() => handleSelectMember(m.id)}
                 style={[styles.memberChip, active && styles.memberChipActive]}
               >
                 <Text

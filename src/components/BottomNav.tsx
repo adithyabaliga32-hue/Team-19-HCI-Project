@@ -1,88 +1,82 @@
+// src/components/BottomNav.tsx
 import React from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Platform,
-} from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { COLORS } from "../constants/theme";
+import { router } from "expo-router";
 
-export type NavTab = "Home" | "Menu" | "Orders" | "Profile";
+type BottomNavProps = {
+  activeTab: "Home" | "Menu" | "Orders" | "Profile";
+};
 
-interface BottomNavProps {
-  activeTab: NavTab;
-}
-
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab }) => {
-  const router = useRouter();
-
-  const tabs: {
-    name: NavTab;
-    icon: keyof typeof Ionicons.glyphMap;
-    route: string;
-  }[] = [
-    { name: "Home", icon: "home", route: "/" },
-    { name: "Menu", icon: "cafe-outline", route: "/Menu" },
-    { name: "Orders", icon: "receipt-outline", route: "/OrderSummary" },
-    { name: "Profile", icon: "person-outline", route: "/Profile" },
-  ];
-
-  const handlePress = (tabName: NavTab, route: string) => {
-    if (tabName === activeTab) return;
-    router.push(route as any);
-  };
+export function BottomNav({ activeTab }: BottomNavProps) {
+  const tabs = [
+    { name: "Home", route: "/", icon: "home-outline", activeIcon: "home" },
+    { name: "Menu", route: "/Menu", icon: "cafe-outline", activeIcon: "cafe" },
+    {
+      name: "Orders",
+      route: "/Orders",
+      icon: "receipt-outline",
+      activeIcon: "receipt",
+    },
+    {
+      name: "Profile",
+      route: "/Profile",
+      icon: "person-outline",
+      activeIcon: "person",
+    },
+  ] as const;
 
   return (
-    <View style={styles.bottomNav}>
+    <View style={styles.navBar}>
       {tabs.map((tab) => {
-        const isActive = tab.name === activeTab;
-
+        const isActive = activeTab === tab.name;
         return (
-          <TouchableOpacity
+          <Pressable
             key={tab.name}
-            style={styles.navItem}
-            activeOpacity={0.7}
-            onPress={() => handlePress(tab.name, tab.route)}
+            onPress={() => router.push(tab.route)}
+            style={styles.tabItem}
           >
             <Ionicons
-              name={tab.icon}
+              name={isActive ? tab.activeIcon : tab.icon}
               size={22}
-              color={isActive ? COLORS.primary : COLORS.textMuted}
+              color={isActive ? "#215C47" : "#68716A"}
             />
-            <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>
+            <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
               {tab.name}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         );
       })}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  bottomNav: {
+  navBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: "#FFF",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E3DC",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: COLORS.surface,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    paddingVertical: 10,
-    paddingBottom: Platform.OS === "ios" ? 20 : 12,
   },
-  navItem: {
+  tabItem: {
     alignItems: "center",
+    justify: "center",
+    flex: 1,
   },
-  navLabel: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginTop: 3,
+  tabLabel: {
+    fontSize: 10,
+    color: "#68716A",
+    marginTop: 2,
   },
-  navLabelActive: {
-    color: COLORS.primary,
+  tabLabelActive: {
+    color: "#215C47",
     fontWeight: "700",
   },
 });

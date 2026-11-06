@@ -54,8 +54,11 @@ export default function CustomizeScreen() {
       whip: selectedWhip,
       quantity,
     });
-    // Navigates back to the Menu screen so you can review and tap Confirm
-    router.push("/Menu");
+    // Return to Menu retaining the target member ID in route parameters
+    router.push({
+      pathname: "/Menu",
+      params: { memberId: currentMember.id },
+    });
   };
 
   return (
