@@ -214,6 +214,16 @@ export default function OrdersRoute() {
             </Text>
           </Pressable>
         )}
+
+        {submitted && (
+          <View style={styles.successBanner}>
+            <Text style={styles.successTitle}>✓ Order Submitted!</Text>
+            <Text style={styles.successDetail}>
+              Your simulated group order has been confirmed. Pickup at Starbucks
+              UTD in approximately 10 minutes.
+            </Text>
+          </View>
+        )}
       </ScrollView>
       <Modal
         visible={showConfirmation}
@@ -255,15 +265,6 @@ export default function OrdersRoute() {
         </View>
       </Modal>
 
-      {submitted && (
-        <View style={styles.successBanner}>
-          <Text style={styles.successTitle}>✓ Order Submitted!</Text>
-          <Text style={styles.successDetail}>
-            Your simulated group order has been confirmed. Pickup at Starbucks
-            UTD in approximately 10 minutes.
-          </Text>
-        </View>
-      )}
       <BottomNav activeTab="Orders" />
     </View>
   );
