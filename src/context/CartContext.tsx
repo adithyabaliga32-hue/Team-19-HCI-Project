@@ -1,9 +1,9 @@
 import React, {
   createContext,
-  useContext,
-  useState,
   useCallback,
+  useContext,
   useMemo,
+  useState,
 } from "react";
 
 export type DietaryTag =
@@ -70,6 +70,7 @@ type CartContextType = {
     memberId: number,
     updates: Partial<GroupMember>,
   ) => void;
+  updateMemberDietaryTags: (memberId: number, tags: DietaryTag[]) => void;
 };
 
 const initialMembers: GroupMember[] = [
@@ -216,9 +217,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const updateMemberDietaryTags = useCallback(
+    (memberId: number, tags: DietaryTag[]) => {
+      setMembers((prev) =>
+        prev.map((m) => (m.id === memberId ? { ...m, dietaryTags: tags } : m)),
+      );
+    },
+    [],
+  );
+
   const value = useMemo(
     () => ({
       isLoggedIn,
+      updateMemberDietaryTags,
       setIsLoggedIn,
       userEmail,
       setUserEmail,
@@ -236,6 +247,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       isLoggedIn,
+      updateMemberDietaryTags,
       userEmail,
       logout,
       members,
