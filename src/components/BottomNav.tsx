@@ -1,10 +1,16 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { COLORS } from '../constants/theme';
+import React from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { COLORS } from "../constants/theme";
 
-export type NavTab = 'Home' | 'Menu' | 'Orders' | 'Profile';
+export type NavTab = "Home" | "Menu" | "Orders" | "Profile";
 
 interface BottomNavProps {
   activeTab: NavTab;
@@ -13,11 +19,15 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab }) => {
   const router = useRouter();
 
-  const tabs: { name: NavTab; icon: keyof typeof Ionicons.glyphMap; route: string }[] = [
-    { name: 'Home', icon: 'home', route: '/' },
-    { name: 'Menu', icon: 'cafe-outline', route: '/StarbucksMenu' },
-    { name: 'Orders', icon: 'receipt-outline', route: '/OrderSummary' },
-    { name: 'Profile', icon: 'person-outline', route: '/Profile' },
+  const tabs: {
+    name: NavTab;
+    icon: keyof typeof Ionicons.glyphMap;
+    route: string;
+  }[] = [
+    { name: "Home", icon: "home", route: "/" },
+    { name: "Menu", icon: "cafe-outline", route: "/Menu" },
+    { name: "Orders", icon: "receipt-outline", route: "/OrderSummary" },
+    { name: "Profile", icon: "person-outline", route: "/Profile" },
   ];
 
   const handlePress = (tabName: NavTab, route: string) => {
@@ -54,17 +64,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab }) => {
 
 const styles = StyleSheet.create({
   bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
     backgroundColor: COLORS.surface,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
     paddingVertical: 10,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 12,
+    paddingBottom: Platform.OS === "ios" ? 20 : 12,
   },
   navItem: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   navLabel: {
     fontSize: 11,
@@ -73,6 +83,6 @@ const styles = StyleSheet.create({
   },
   navLabelActive: {
     color: COLORS.primary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });

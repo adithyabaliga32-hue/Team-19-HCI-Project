@@ -1,348 +1,536 @@
-import React, { useState } from 'react';
+// src/screens/HomeScreen.tsx
+import React, { useState } from "react";
 import {
-  StyleSheet,
-  Text,
   View,
-  TextInput,
-  TouchableOpacity,
+  Text,
+  Pressable,
   ScrollView,
-  Image,
-  SafeAreaView,
-  StatusBar,
-  Platform,
-} from 'react-native';
-import { Ionicons, Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+  StyleSheet,
+  TextInput,
+  Modal,
+} from "react-native";
+import Svg, { Circle, Path } from "react-native-svg";
+import { useCart, DietaryTag } from "../context/CartContext";
+import { DrinkArtwork } from "../components/DrinkArtwork";
+import { BottomNav } from "../components/BottomNav";
+import { router } from "expo-router";
 
-import { COLORS, SPACING } from '../constants/theme';
-import { CATEGORIES, FAVORITE_ITEM, SELECTED_RESTAURANT } from '../data/homeData';
-import { MOCK_ORDER_SUMMARY } from '../data/orderData';
-import { CategoryCard } from '../components/CategoryCard';
-import { BottomNav } from '../components/BottomNav';
-import { useCart } from '../context/CartContext';
+const restaurants = ["Starbucks", "TeaCo"];
+
+const savedFavorite = {
+  drink: "Caffè Latte",
+  restaurant: "Starbucks",
+  milk: "Oat milk",
+  whip: "Vegan whip",
+  size: "Grande",
+  temperature: "Hot",
+  price: 5.45,
+};
+
+const money = (val: number) =>
+  val.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
 export default function HomeScreen() {
-  const router = useRouter();
-  const { quickOrder } = useCart();
-  const [searchQuery, setSearchQuery] = useState('');
+  const {
+    members,
+    addMember,
+    removeMember,
+    updateMemberName,
+    toggleMemberDietaryTag,
+    updateMemberCustomization,
+    setActiveMemberId,
+  } = useCart();
 
-  const handleSearchSubmit = () => {
-    if (searchQuery.trim().toLowerCase() === 'starbucks') {
-      router.push('/StarbucksMenu' as any);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRestaurant, setSelectedRestaurant] = useState("Starbucks");
+  const [editingNameId, setEditingNameId] = useState<number | null>(null);
+  const [nameDraft, setNameDraft] = useState("");
+  const [showDietaryModal, setShowDietaryModal] = useState(false);
+
+  const allTags = members.flatMap((m) => m.dietaryTags);
+  const groupDietarySummary = [...new Set(allTags)]
+    .map((tag) => (tag === "None" ? "No restrictions" : tag))
+    .join(" · ");
+
+  const handleSaveName = (index: number) => {
+    if (nameDraft.trim()) {
+      updateMemberName(index, nameDraft.trim());
     }
+    setEditingNameId(null);
+    setNameDraft("");
   };
 
   const handleQuickOrder = () => {
-    quickOrder(MOCK_ORDER_SUMMARY);
-    router.push('/OrderSummary');
+    const targetMember = members[0];
+    if (targetMember) {
+      setActiveMemberId(targetMember.id);
+      updateMemberCustomization(targetMember.id, {
+        drink: savedFavorite.drink,
+        restaurant: savedFavorite.restaurant,
+        price: savedFavorite.price,
+        temperature: savedFavorite.temperature,
+        milk: savedFavorite.milk,
+        whip: savedFavorite.whip,
+        size: savedFavorite.size,
+      });
+    }
+    router.push("/Menu");
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-
-        {/* Header */}
+    <View style={styles.root}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* --- HEADER --- */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.appTitle}>ServeFlow</Text>
-            <Text style={styles.locationSubtitle}>UTD Student Union</Text>
+          <View style={styles.avatarHeader}>
+            <Text style={styles.avatarHeaderText}>SF</Text>
           </View>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="people-outline" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerTitle}>ServeFlow</Text>
+            <Text style={styles.headerSubtitle}>UT Dallas · Student Union</Text>
+          </View>
         </View>
 
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={20} color={COLORS.textSecondary} style={styles.searchIcon} />
+        {/* --- SEARCH BAR --- */}
+        <View style={styles.searchBar}>
+          <Svg width={18} height={18} viewBox="0 0 24 24">
+            <Circle
+              cx={10.8}
+              cy={10.8}
+              r={6.3}
+              fill="none"
+              stroke="#68716A"
+              strokeWidth={1.8}
+            />
+            <Path
+              d="m15.5 15.5 4 4"
+              fill="none"
+              stroke="#68716A"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+            />
+          </Svg>
           <TextInput
-            style={styles.searchInput}
-            placeholder="Search restaurants"
-            placeholderTextColor={COLORS.textMuted}
+            placeholder="Search restaurants or drinks"
+            placeholderTextColor="#68716A"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            onSubmitEditing={handleSearchSubmit}
-            returnKeyType="search"
-          />
-          <TouchableOpacity style={styles.filterButton} onPress={handleSearchSubmit}>
-            <Feather name="sliders" size={18} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Selected Restaurant */}
-        <View style={styles.selectedRestaurant}>
-          <View style={styles.selectedTextContainer}>
-            <Text style={styles.selectedRestaurantTag}>Restaurant selected</Text>
-            <Text style={styles.selectedRestaurantTitle}>{SELECTED_RESTAURANT.name}</Text>
-            <Text style={styles.selectedRestaurantSubtitle}>{SELECTED_RESTAURANT.subtitle}</Text>
-          </View>
-          <Image
-            source={{ uri: SELECTED_RESTAURANT.logoURL }}
-            style={styles.selectedRestaurantImage}
+            style={styles.searchInput}
           />
         </View>
 
-        {/* Your Usual Section */}
-        <View style={styles.sectionHeader}>
+        {/* --- RESTAURANT SELECTION --- */}
+        <View style={styles.sectionHeading}>
+          <Text style={styles.sectionTitle}>Nearby restaurants</Text>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 8 }}
+        >
+          {restaurants.map((r) => {
+            const active = r === selectedRestaurant;
+            return (
+              <Pressable
+                key={r}
+                onPress={() => setSelectedRestaurant(r)}
+                style={[
+                  styles.restaurantChip,
+                  active && styles.restaurantChipActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.restaurantChipText,
+                    active && styles.restaurantChipTextActive,
+                  ]}
+                >
+                  {r}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {/* --- YOUR USUAL CARD WITH DRINK IMAGE --- */}
+        <View style={styles.sectionHeading}>
           <Text style={styles.sectionTitle}>Your usual</Text>
-          <TouchableOpacity>
-            <Text style={styles.linkText}>Edit favorites</Text>
-          </TouchableOpacity>
         </View>
-
         <View style={styles.usualCard}>
-          <View style={styles.usualCardTop}>
-            <Image source={{ uri: FAVORITE_ITEM?.imageUrl }} style={styles.itemImage} />
-            <View style={styles.itemDetails}>
-              <View style={styles.itemTitleRow}>
-                <Text style={styles.itemTitle}>{FAVORITE_ITEM?.title}</Text>
-                <TouchableOpacity>
-                  <Ionicons name="heart-outline" size={22} color={COLORS.primary} />
-                </TouchableOpacity>
+          <View style={styles.usualRow}>
+            <DrinkArtwork drink={savedFavorite.drink} size={64} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.memberName}>{savedFavorite.drink}</Text>
+                <Text style={styles.priceText}>
+                  {money(savedFavorite.price)}
+                </Text>
               </View>
-              <Text style={styles.itemDescription}>Oat milk · Vegan whip · Grande · Hot</Text>
-              <Text style={styles.itemPrice}>${FAVORITE_ITEM?.basePrice.toFixed(2)} · {FAVORITE_ITEM?.restaurant}</Text>
+              <Text style={styles.cardDetail}>
+                {savedFavorite.restaurant} · {savedFavorite.milk} ·{" "}
+                {savedFavorite.size}
+              </Text>
             </View>
           </View>
+          <Pressable onPress={handleQuickOrder} style={styles.quickOrderBtn}>
+            <Text style={styles.quickOrderText}>Quick order</Text>
+          </Pressable>
+        </View>
 
-          <View style={styles.badgeRow}>
-            {FAVORITE_ITEM?.allergenBadges.map((badge) => (
-              <View key={badge} style={styles.badge}>
-                <Ionicons name="checkmark" size={14} color={COLORS.primary} />
-                <Text style={styles.badgeText}>{badge}</Text>
-              </View>
-            ))}
+        {/* --- GROUP ORDER SECTION --- */}
+        <View style={styles.sectionHeading}>
+          <Text style={styles.sectionTitle}>Group order</Text>
+          <Text style={styles.sectionCount}>
+            {members.length} {members.length === 1 ? "person" : "people"}
+          </Text>
+        </View>
+
+        <View style={styles.crewBanner}>
+          <Text style={styles.crewIcon}>♧</Text>
+          <View>
+            <Text style={styles.crewTitle}>Your crew</Text>
+            <Text style={styles.cardDetail}>
+              {members.length} {members.length === 1 ? "person" : "people"}
+            </Text>
           </View>
-
-          <TouchableOpacity style={styles.quickOrderButton} onPress={handleQuickOrder} activeOpacity={0.8}>
-            <Ionicons name="flash-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-            <Text style={styles.quickOrderText}>Quick order · ${FAVORITE_ITEM?.basePrice.toFixed(2)}</Text>
-          </TouchableOpacity>
-          <Text style={styles.recipeChecksText}>Recipe checks</Text>
         </View>
 
-        {/* Explore The Menu Grid */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Explore the menu</Text>
-          <TouchableOpacity>
-            <Text style={styles.linkText}>See all</Text>
-          </TouchableOpacity>
+        <Pressable
+          onPress={() => setShowDietaryModal(true)}
+          style={styles.tagSettings}
+        >
+          <Text style={styles.tagIcon}>◆</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.crewTitle}>Set dietary tags</Text>
+            <Text style={styles.cardDetail}>{groupDietarySummary}</Text>
+          </View>
+          <Text style={styles.mutedText}>›</Text>
+        </Pressable>
+
+        {/* Group Members List */}
+        <View style={styles.sectionHeading}>
+          <Text style={styles.sectionTitle}>Group members</Text>
+          <Pressable onPress={addMember} style={styles.addMemberButton}>
+            <Text style={styles.addMemberButtonText}>＋ Add person</Text>
+          </Pressable>
         </View>
 
-        <View style={styles.exploreGrid}>
-          {CATEGORIES.map((cat) => (
-            <CategoryCard key={cat.id} category={cat} />
-          ))}
-        </View>
+        {members.map((member, index) => (
+          <View key={member.id} style={styles.memberCard}>
+            <View style={styles.memberDetails}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>♙</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                {editingNameId === member.id ? (
+                  <TextInput
+                    value={nameDraft}
+                    onChangeText={setNameDraft}
+                    onSubmitEditing={() => handleSaveName(index)}
+                    autoFocus
+                    style={styles.nameInput}
+                  />
+                ) : (
+                  <Text style={styles.memberName}>{member.name}</Text>
+                )}
+                <Text style={styles.cardDetail}>
+                  {member.dietaryTags
+                    .map((t) => (t === "None" ? "No restrictions" : t))
+                    .join(", ")}
+                </Text>
+              </View>
+            </View>
 
-        {/* Dietary Preference Note */}
-        <View style={styles.preferenceNotice}>
-          <Feather name="shield" size={16} color={COLORS.primary} style={{ marginRight: 8 }} />
-          <Text style={styles.preferenceText}>Your dietary preferences travel with your order.</Text>
-        </View>
+            <View style={styles.memberActions}>
+              {editingNameId === member.id ? (
+                <Pressable
+                  onPress={() => handleSaveName(index)}
+                  style={styles.actionBtn}
+                >
+                  <Text style={styles.actionText}>Save</Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    setEditingNameId(member.id);
+                    setNameDraft(member.name);
+                  }}
+                  style={styles.actionBtn}
+                >
+                  <Text style={styles.actionText}>Edit name</Text>
+                </Pressable>
+              )}
+              <Pressable
+                disabled={members.length <= 1}
+                onPress={() => removeMember(index)}
+                style={styles.actionBtn}
+              >
+                <Text
+                  style={[
+                    styles.removeText,
+                    members.length <= 1 && { opacity: 0.4 },
+                  ]}
+                >
+                  Remove
+                </Text>
+              </Pressable>
+            </View>
 
+            <Pressable
+              onPress={() => router.push("/Menu")}
+              style={styles.customizeButton}
+            >
+              <Text style={styles.customizeButtonText}>
+                {member.added
+                  ? `Edit ${member.name}'s drink`
+                  : `Customize for ${member.name}`}
+              </Text>
+            </Pressable>
+          </View>
+        ))}
+
+        {/* DIETARY TAGS MODAL */}
+        <Modal visible={showDietaryModal} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalSheet}>
+              <Text style={styles.modalTitle}>Set dietary tags</Text>
+              {members.map((member, index) => (
+                <View key={member.id} style={{ marginVertical: 6 }}>
+                  <Text style={styles.memberName}>{member.name}</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      gap: 6,
+                      marginTop: 4,
+                    }}
+                  >
+                    {(
+                      [
+                        "Vegan",
+                        "Nut allergy",
+                        "Lactose intolerance",
+                        "None",
+                      ] as DietaryTag[]
+                    ).map((tag) => {
+                      const active = member.dietaryTags.includes(tag);
+                      return (
+                        <Pressable
+                          key={tag}
+                          onPress={() => toggleMemberDietaryTag(index, tag)}
+                          style={[
+                            styles.tagChip,
+                            active && styles.tagChipActive,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.tagChipText,
+                              active && styles.tagChipTextActive,
+                            ]}
+                          >
+                            {tag}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
+              <Pressable
+                onPress={() => setShowDietaryModal(false)}
+                style={styles.closeModalBtn}
+              >
+                <Text style={styles.closeModalText}>Done</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
 
       <BottomNav activeTab="Home" />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  scrollContent: {
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.xl,
-  },
+  root: { flex: 1, backgroundColor: "#F8F7F1" },
+  container: { padding: 20, paddingBottom: 80, gap: 12 },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 4,
   },
-  appTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
+  avatarHeader: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#215C47",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  locationSubtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  iconButton: {
-    padding: 6,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: 30,
-    paddingHorizontal: SPACING.lg,
-    height: 48,
-    marginBottom: SPACING.xl,
+  avatarHeaderText: { color: "#FFF", fontWeight: "700", fontSize: 14 },
+  headerTitle: { fontSize: 22, fontWeight: "700", color: "#252A26" },
+  headerSubtitle: { fontSize: 11, color: "#68716A" },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 14,
+    minHeight: 44,
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  searchIcon: {
-    marginRight: SPACING.sm,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.textPrimary,
-  },
-  filterButton: {
-    padding: 4,
-  },
-  selectedRestaurant: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 20,
-    padding: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  selectedTextContainer: {
-    flex: 1,
-    paddingRight: SPACING.sm,
-  },
-  selectedRestaurantTag: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.primary,
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  selectedRestaurantTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    lineHeight: 24,
-    marginBottom: SPACING.sm,
-  },
-  selectedRestaurantSubtitle: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  selectedRestaurantImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  linkText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-  usualCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 20,
-    padding: SPACING.lg,
-    marginBottom: 24,
-  },
-  usualCardTop: {
-    flexDirection: 'row',
-    marginBottom: SPACING.md,
-  },
-  itemImage: {
-    width: 70,
-    height: 70,
+    borderColor: "#E5E3DC",
     borderRadius: 14,
-    marginRight: 14,
+    backgroundColor: "#FFF",
   },
-  itemDetails: {
-    flex: 1,
+  searchInput: { flex: 1, color: "#252A26", fontSize: 13 },
+  sectionHeading: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 6,
   },
-  itemTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  sectionTitle: { fontSize: 14, fontWeight: "600", color: "#252A26" },
+  sectionCount: { fontSize: 11, color: "#215C47", fontWeight: "700" },
+  restaurantChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#E5E3DC",
+    backgroundColor: "#FFF",
   },
-  itemTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
+  restaurantChipActive: { backgroundColor: "#215C47", borderColor: "#215C47" },
+  restaurantChipText: { fontSize: 11, color: "#68716A" },
+  restaurantChipTextActive: { color: "#FFF", fontWeight: "600" },
+  usualCard: {
+    backgroundColor: "#FFF",
+    borderRadius: 16,
+    padding: 14,
+    gap: 12,
   },
-  itemDescription: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginVertical: 4,
+  usualRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  priceText: { color: "#215C47", fontWeight: "700", fontSize: 13 },
+  quickOrderBtn: {
+    backgroundColor: "#215C47",
+    borderRadius: 20,
+    paddingVertical: 10,
+    alignItems: "center",
   },
-  itemPrice: {
+  quickOrderText: { color: "#FFF", fontWeight: "700", fontSize: 12 },
+  crewBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#EBF2E8",
+    borderRadius: 14,
+    padding: 14,
+  },
+  crewIcon: { fontSize: 24, color: "#215C47" },
+  crewTitle: { fontSize: 13, fontWeight: "700", color: "#252A26" },
+  cardDetail: { fontSize: 11, color: "#68716A" },
+  tagSettings: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 12,
+    backgroundColor: "#FFF",
+    borderWidth: 1,
+    borderColor: "#E5E3DC",
+    borderRadius: 14,
+  },
+  tagIcon: { color: "#215C47", fontSize: 16 },
+  mutedText: { color: "#68716A" },
+  addMemberButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: "#EBF2E8",
+  },
+  addMemberButtonText: { color: "#215C47", fontSize: 11, fontWeight: "700" },
+  memberCard: {
+    padding: 12,
+    backgroundColor: "#FFF",
+    borderRadius: 16,
+    gap: 10,
+  },
+  memberDetails: { flexDirection: "row", alignItems: "center", gap: 10 },
+  avatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#F0E6D5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: { color: "#215C47", fontSize: 16 },
+  memberName: { fontSize: 13, fontWeight: "700", color: "#252A26" },
+  nameInput: {
+    borderWidth: 1,
+    borderColor: "#E5E3DC",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.primary,
   },
-  badgeRow: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    marginBottom: 14,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.badgeBg,
+  memberActions: { flexDirection: "row", gap: 8 },
+  actionBtn: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
-    gap: 4,
+    backgroundColor: "#F7F6F1",
   },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.primary,
+  actionText: { fontSize: 11, color: "#215C47", fontWeight: "600" },
+  removeText: { fontSize: 11, color: "#93602F", fontWeight: "600" },
+  customizeButton: {
+    minHeight: 40,
+    borderRadius: 20,
+    backgroundColor: "#EBF2E8",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#A1B5A4",
   },
-  quickOrderButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 25,
-    height: 48,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
+  customizeButtonText: { color: "#215C47", fontSize: 12, fontWeight: "700" },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
-  quickOrderText: {
-    color: COLORS.surface,
-    fontSize: 15,
-    fontWeight: '700',
+  modalSheet: {
+    backgroundColor: "#FFF",
+    padding: 20,
+    borderRadius: 18,
+    gap: 12,
   },
-  recipeChecksText: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginTop: 2,
+  modalTitle: { fontSize: 16, fontWeight: "700", color: "#252A26" },
+  tagChip: {
+    borderWidth: 1,
+    borderColor: "#E5E3DC",
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
-  exploreGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.xl,
+  tagChipActive: { backgroundColor: "#215C47", borderColor: "#215C47" },
+  tagChipText: { fontSize: 10, color: "#68716A" },
+  tagChipTextActive: { color: "#FFF", fontWeight: "700" },
+  closeModalBtn: {
+    backgroundColor: "#215C47",
+    padding: 12,
+    borderRadius: 16,
+    alignItems: "center",
+    marginTop: 10,
   },
-  preferenceNotice: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    marginBottom: 10,
-  },
-  preferenceText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
+  closeModalText: { color: "#FFF", fontWeight: "700" },
 });
