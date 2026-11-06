@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   Modal,
@@ -7,11 +8,8 @@ import {
   Text,
   View,
 } from "react-native";
-
-import { getDietaryConflicts, useCart } from "../context/CartContext";
-
-import { router } from "expo-router";
 import { BottomNav } from "../components/BottomNav";
+import { getDietaryConflicts, useCart } from "../context/CartContext";
 
 const money = (val: number) =>
   val.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -116,12 +114,21 @@ export default function OrdersRoute() {
                 {index > 0 && <View style={styles.divider} />}
                 <View style={styles.itemHeader}>
                   <Text style={styles.memberName}>♙ {member.name}</Text>
-                  <View style={styles.tagBadge}>
-                    <Text style={styles.tagText}>
-                      {member.dietaryTags.includes("None")
-                        ? "No restrictions"
-                        : member.dietaryTags.join(" · ")}
-                    </Text>
+
+                  <View style={styles.badgeContainer}>
+                    <View style={styles.tagBadge}>
+                      <Text style={styles.tagText}>
+                        {member.dietaryTags.includes("None")
+                          ? "No restrictions"
+                          : member.dietaryTags.join(" · ")}
+                      </Text>
+                    </View>
+
+                    {getDietaryConflicts(member).length === 0 && (
+                      <View style={styles.verifiedBadge}>
+                        <Text style={styles.verifiedText}>✓ Verified</Text>
+                      </View>
+                    )}
                   </View>
                 </View>
                 <View style={styles.itemDetails}>
@@ -298,6 +305,22 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   tagText: { color: "#215C47", fontSize: 10, fontWeight: "600" },
+  badgeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  verifiedBadge: {
+    backgroundColor: "#E6F3EA",
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  verifiedText: {
+    color: "#215C47",
+    fontSize: 10,
+    fontWeight: "700",
+  },
   itemDetails: {
     flexDirection: "row",
     justifyContent: "space-between",

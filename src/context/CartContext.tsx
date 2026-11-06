@@ -229,7 +229,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       isLoggedIn,
-      updateMemberDietaryTags,
       setIsLoggedIn,
       userEmail,
       setUserEmail,
@@ -244,10 +243,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       updateMemberName,
       toggleMemberDietaryTag,
       updateMemberCustomization,
+      updateMemberDietaryTags,
     }),
     [
       isLoggedIn,
-      updateMemberDietaryTags,
       userEmail,
       logout,
       members,
@@ -258,6 +257,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       updateMemberName,
       toggleMemberDietaryTag,
       updateMemberCustomization,
+      updateMemberDietaryTags,
     ],
   );
 
