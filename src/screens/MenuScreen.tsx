@@ -1,18 +1,18 @@
-import React, { useState, useCallback, useMemo } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  Pressable,
   FlatList,
-  StyleSheet,
-  TextInput,
   Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import { useCart } from "../context/CartContext";
-import { DrinkArtwork } from "../components/DrinkArtwork";
 import { BottomNav } from "../components/BottomNav";
-import { router } from "expo-router";
+import { DrinkArtwork } from "../components/DrinkArtwork";
+import { useCart } from "../context/CartContext";
 
 const restaurants = ["Starbucks", "TeaCo"];
 const allRestaurantsOption = "All";
@@ -103,10 +103,20 @@ const money = (val: number) =>
   val.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
 export default function MenuScreen() {
-  const { members, setActiveMemberId, updateMemberCustomization } = useCart();
+  const {
+    members,
+    activeMemberId,
+    setActiveMemberId,
+    updateMemberCustomization,
+  } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [menuFilter, setMenuFilter] = useState(allRestaurantsOption);
-  const [targetMemberId, setTargetMemberId] = useState(members[0]?.id ?? 0);
+  const [targetMemberId, setTargetMemberId] = useState(activeMemberId);
+  useFocusEffect(
+    useCallback(() => {
+      setTargetMemberId(activeMemberId);
+    }, [activeMemberId]),
+  );
 
   const targetMember = useMemo(
     () => members.find((m) => m.id === targetMemberId) ?? members[0],
