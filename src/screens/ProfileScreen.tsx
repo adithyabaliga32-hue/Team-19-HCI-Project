@@ -1,4 +1,3 @@
-// src/screens/ProfileScreen.tsx
 import React, { useState } from "react";
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -51,12 +50,9 @@ export default function ProfileScreen() {
               Manage your individual & group order preferences
             </Text>
           </View>
-          <View style={styles.settingsBtn}>
-            <Ionicons name="settings-sharp" size={20} color="#68716A" />
-          </View>
         </View>
 
-        {/* HERO CARD WITH PERFECTLY CENTERED AVATAR */}
+        {/* HERO CARD */}
         <View style={styles.heroCard}>
           <View style={styles.avatar}>
             <Ionicons
@@ -121,14 +117,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 22, fontWeight: "700", color: "#252A26" },
   headerSubtitle: { fontSize: 11, color: "#68716A", marginTop: 2 },
-  settingsBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#E5E3DC",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   heroCard: {
     flexDirection: "row",
     alignItems: "center",

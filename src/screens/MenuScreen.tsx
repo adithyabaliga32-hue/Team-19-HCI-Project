@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { useCart } from "../context/CartContext";
 import { DrinkArtwork } from "../components/DrinkArtwork";
 import { BottomNav } from "../components/BottomNav";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 const restaurants = ["Starbucks", "TeaCo"];
 const allRestaurantsOption = "All";
@@ -103,10 +103,33 @@ const money = (val: number) =>
   val.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
 export default function MenuScreen() {
-  const { members, setActiveMemberId, updateMemberCustomization } = useCart();
+  const {
+    members,
+    activeMemberId,
+    setActiveMemberId,
+    updateMemberCustomization,
+  } = useCart();
+  const params = useLocalSearchParams<{ memberId?: string }>();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [menuFilter, setMenuFilter] = useState(allRestaurantsOption);
-  const [targetMemberId, setTargetMemberId] = useState(members[0]?.id ?? 0);
+  const [targetMemberId, setTargetMemberId] = useState<number>(() => {
+    if (params.memberId !== undefined) {
+      return parseInt(params.memberId, 10);
+    }
+    return activeMemberId ?? members[0]?.id ?? 0;
+  });
+
+  // Keep target member synced whenever navigation params or active context changes
+  useEffect(() => {
+    if (params.memberId !== undefined) {
+      const parsed = parseInt(params.memberId, 10);
+      setTargetMemberId(parsed);
+      setActiveMemberId(parsed);
+    } else if (activeMemberId !== undefined) {
+      setTargetMemberId(activeMemberId);
+    }
+  }, [params.memberId, activeMemberId, setActiveMemberId]);
 
   const targetMember = useMemo(
     () => members.find((m) => m.id === targetMemberId) ?? members[0],
@@ -124,6 +147,11 @@ export default function MenuScreen() {
           item.drink.toLowerCase().includes(query)),
     );
   }, [menuFilter, searchQuery]);
+
+  const handleSelectMember = (id: number) => {
+    setTargetMemberId(id);
+    setActiveMemberId(id);
+  };
 
   const handleSelectDrink = useCallback(
     (item: MenuDrink) => {
@@ -203,7 +231,7 @@ export default function MenuScreen() {
             return (
               <Pressable
                 key={m.id}
-                onPress={() => setTargetMemberId(m.id)}
+                onPress={() => handleSelectMember(m.id)}
                 style={[styles.memberChip, active && styles.memberChipActive]}
               >
                 <Text

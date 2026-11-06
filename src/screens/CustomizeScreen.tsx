@@ -1,4 +1,3 @@
-// src/screens/CustomizeScreen.tsx
 import React, { useState } from "react";
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useCart, getDietaryConflicts } from "../context/CartContext";
@@ -54,8 +53,11 @@ export default function CustomizeScreen() {
       whip: selectedWhip,
       quantity,
     });
-    // Navigates back to the Menu screen so you can review and tap Confirm
-    router.push("/Menu");
+    // Return to Menu retaining the target member ID in route parameters
+    router.push({
+      pathname: "/Menu",
+      params: { memberId: currentMember.id },
+    });
   };
 
   return (

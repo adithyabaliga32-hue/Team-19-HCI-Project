@@ -70,6 +70,7 @@ type CartContextType = {
     memberId: number,
     updates: Partial<GroupMember>,
   ) => void;
+  clearCart: () => void;
 };
 
 const initialMembers: GroupMember[] = [
@@ -135,6 +136,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     setIsLoggedIn(false);
     setUserEmail("");
+  }, []);
+
+  const clearCart = useCallback(() => {
+    setMembers((prev) => prev.map((m) => ({ ...m, added: false })));
   }, []);
 
   const addMember = useCallback(() => {
@@ -233,6 +238,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       updateMemberName,
       toggleMemberDietaryTag,
       updateMemberCustomization,
+      clearCart,
     }),
     [
       isLoggedIn,
@@ -246,6 +252,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       updateMemberName,
       toggleMemberDietaryTag,
       updateMemberCustomization,
+      clearCart,
     ],
   );
 
