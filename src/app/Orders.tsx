@@ -241,10 +241,6 @@ export default function OrdersRoute() {
 
             <Text style={styles.confirmationTotal}>Total: {money(total)}</Text>
 
-            <Text style={styles.confirmationNote}>
-              This is a simulated order. No actual payment will be charged.
-            </Text>
-
             <Pressable style={styles.submitBtn} onPress={confirmOrder}>
               <Text style={styles.submitBtnText}>Confirm Order</Text>
             </Pressable>
@@ -390,10 +386,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#215C47",
     marginTop: 8,
-  },
-  confirmationNote: {
-    fontSize: 11,
-    color: "#68716A",
   },
   cancelBtn: {
     padding: 12,
