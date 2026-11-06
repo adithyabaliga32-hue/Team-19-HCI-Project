@@ -1,8 +1,7 @@
 // src/components/BottomNav.tsx
-import React from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type BottomNavProps = {
   activeTab: "Home" | "Menu" | "Orders" | "Profile";
@@ -67,7 +66,7 @@ const styles = StyleSheet.create({
   },
   tabItem: {
     alignItems: "center",
-    justify: "center",
+    justifyContent: "center",
     flex: 1,
   },
   tabLabel: {
