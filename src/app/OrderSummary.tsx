@@ -1,5 +1,5 @@
-import OrderSummaryScreen from "../screens/OrderSummaryScreen";
+import OrdersRoute from "./Orders";
 
 export default function OrderSummaryRoute() {
-  return <OrderSummaryScreen />;
+  return <OrdersRoute />;
 }
