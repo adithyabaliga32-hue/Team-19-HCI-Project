@@ -1,7 +1,7 @@
-import React from "react";
+// src/app/_layout.tsx
+import { Slot } from "expo-router";
 import { StatusBar, StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { Slot } from "expo-router";
 import { CartProvider } from "../context/CartContext";
 
 export default function RootLayout() {
@@ -9,7 +9,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <CartProvider>
         <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-          <StatusBar barStyle="dark-content" backgroundColor="#F8F7F1" />
+          <StatusBar barStyle="dark-content" />
           <Slot />
         </SafeAreaView>
       </CartProvider>

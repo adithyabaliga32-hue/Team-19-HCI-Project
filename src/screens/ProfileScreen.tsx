@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
+// src/screens/ProfileScreen.tsx
 import { Ionicons } from "@expo/vector-icons";
-import { useCart, DietaryTag } from "../context/CartContext";
-import { BottomNav } from "../components/BottomNav";
 import { router } from "expo-router";
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { BottomNav } from "../components/BottomNav";
+import { DietaryTag, useCart } from "../context/CartContext";
 
 const tagOptions: DietaryTag[] = [
   "Vegan",
@@ -14,7 +15,13 @@ const tagOptions: DietaryTag[] = [
 ];
 
 export default function ProfileScreen() {
-  const { profileTags, setProfileTags, logout } = useCart();
+  const {
+    profileTags,
+    setProfileTags,
+    logout,
+    members,
+    updateMemberDietaryTags,
+  } = useCart();
   const [draftTags, setDraftTags] = useState<DietaryTag[]>(profileTags);
 
   const toggleTag = (tag: DietaryTag) => {
@@ -33,6 +40,10 @@ export default function ProfileScreen() {
 
   const savePreferences = () => {
     setProfileTags(draftTags);
+    const currentUser = members.find((member) => member.id === 0);
+    if (currentUser) {
+      updateMemberDietaryTags(currentUser.id, draftTags);
+    }
   };
 
   const handleLogout = () => {

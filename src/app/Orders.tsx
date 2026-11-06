@@ -1,22 +1,26 @@
-import React, { useState } from "react";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
-  View,
-  Text,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
-  Alert,
+  Text,
+  View,
 } from "react-native";
-import { useCart } from "../context/CartContext";
 import { BottomNav } from "../components/BottomNav";
-import { router } from "expo-router";
+import { getDietaryConflicts, useCart } from "../context/CartContext";
 
 const money = (val: number) =>
   val.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
 export default function OrdersRoute() {
-  const { members } = useCart();
+  const { members, setActiveMemberId } = useCart();
+
   const [submitted, setSubmitted] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
+  const [conflictMemberId, setConflictMemberId] = useState<number | null>(null);
 
   const orderedMembers = members.filter((m) => m.added);
   const subtotal = orderedMembers.reduce(
@@ -27,11 +31,65 @@ export default function OrdersRoute() {
   const total = subtotal + tax;
 
   const handlePlaceOrder = () => {
-    setSubmitted(true);
-    Alert.alert(
-      "Order Submitted!",
-      "Your group order has been placed successfully.",
+    setCheckoutError("");
+
+    if (orderedMembers.length === 0) {
+      setCheckoutError("Please add at least one drink before checkout.");
+      return;
+    }
+
+    const conflicts = orderedMembers.flatMap((member) =>
+      getDietaryConflicts(member).map((conflict) => ({
+        member,
+        conflict,
+      })),
     );
+
+    if (conflicts.length > 0) {
+      setConflictMemberId(conflicts[0].member.id);
+
+      const message = conflicts
+        .map(({ member, conflict }) => `${member.name}: ${conflict}`)
+        .join("\n");
+
+      setCheckoutError(
+        `Please resolve these dietary conflicts before checkout:\n${message}`,
+      );
+      return;
+    }
+
+    setConflictMemberId(null);
+    setShowConfirmation(true);
+  };
+
+  const confirmOrder = () => {
+    // Revalidate in case dietary preferences changed before confirmation.
+    const conflicts = orderedMembers.flatMap((member) =>
+      getDietaryConflicts(member).map((conflict) => ({
+        member,
+        conflict,
+      })),
+    );
+
+    if (conflicts.length > 0 || orderedMembers.length === 0) {
+      setShowConfirmation(false);
+
+      if (conflicts.length > 0) {
+        setConflictMemberId(conflicts[0].member.id);
+
+        setCheckoutError(
+          `Order details changed. ${conflicts[0].member.name}: ${conflicts[0].conflict}`,
+        );
+      } else {
+        setCheckoutError("Please add at least one drink before checkout.");
+      }
+
+      return;
+    }
+
+    setShowConfirmation(false);
+    setCheckoutError("");
+    setSubmitted(true);
   };
 
   return (
@@ -56,12 +114,21 @@ export default function OrdersRoute() {
                 {index > 0 && <View style={styles.divider} />}
                 <View style={styles.itemHeader}>
                   <Text style={styles.memberName}>♙ {member.name}</Text>
-                  <View style={styles.tagBadge}>
-                    <Text style={styles.tagText}>
-                      {member.dietaryTag === "None"
-                        ? "No restrictions"
-                        : member.dietaryTag}
-                    </Text>
+
+                  <View style={styles.badgeContainer}>
+                    <View style={styles.tagBadge}>
+                      <Text style={styles.tagText}>
+                        {member.dietaryTags.includes("None")
+                          ? "No restrictions"
+                          : member.dietaryTags.join(" · ")}
+                      </Text>
+                    </View>
+
+                    {getDietaryConflicts(member).length === 0 && (
+                      <View style={styles.verifiedBadge}>
+                        <Text style={styles.verifiedText}>✓ Verified</Text>
+                      </View>
+                    )}
                   </View>
                 </View>
                 <View style={styles.itemDetails}>
@@ -73,15 +140,21 @@ export default function OrdersRoute() {
                   </Text>
                 </View>
                 <Text style={styles.cardDetail}>
-                  {member.restaurant} · {member.size} · {member.temperature} ·{" "}
-                  {member.milk}
+                  {member.restaurant} · {member.size} · {member.temperature}
+                </Text>
+                <Text style={styles.cardDetail}>
+                  Milk: {member.milk} · Syrup: {member.syrup} · Topping:{" "}
+                  {member.whip}
                 </Text>
                 <Pressable
-                  onPress={() => router.push("/Menu")}
+                  onPress={() => {
+                    setActiveMemberId(member.id);
+                    router.push("/Menu");
+                  }}
                   style={styles.editBtn}
                 >
                   <Text style={styles.editBtnText}>
-                    Edit {member.name}'s drink
+                    Edit {member.name}&apos;s drink
                   </Text>
                 </Pressable>
               </View>
@@ -116,6 +189,23 @@ export default function OrdersRoute() {
           </View>
         </View>
 
+        {checkoutError !== "" && (
+          <View style={styles.errorCard}>
+            <Text style={styles.errorText}>⚠ {checkoutError}</Text>
+            <Pressable
+              onPress={() => {
+                setCheckoutError("");
+                if (conflictMemberId !== null) {
+                  setActiveMemberId(conflictMemberId);
+                }
+                router.push("/Menu");
+              }}
+            >
+              <Text style={styles.errorLink}>Review and edit drinks</Text>
+            </Pressable>
+          </View>
+        )}
+
         {/* PLACE ORDER BUTTON */}
         {orderedMembers.length > 0 && !submitted && (
           <Pressable onPress={handlePlaceOrder} style={styles.submitBtn}>
@@ -125,6 +215,55 @@ export default function OrdersRoute() {
           </Pressable>
         )}
       </ScrollView>
+      <Modal
+        visible={showConfirmation}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowConfirmation(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmationCard}>
+            <Text style={styles.confirmationTitle}>Confirm Group Order</Text>
+
+            <Text style={styles.confirmationDetail}>
+              {orderedMembers.length} drink(s) verified
+            </Text>
+
+            <Text style={styles.confirmationDetail}>Pickup: Starbucks UTD</Text>
+
+            <Text style={styles.confirmationDetail}>
+              Student Union · Pickup counter
+            </Text>
+
+            <Text style={styles.confirmationDetail}>
+              Estimated preparation: 10 minutes
+            </Text>
+
+            <Text style={styles.confirmationTotal}>Total: {money(total)}</Text>
+
+            <Pressable style={styles.submitBtn} onPress={confirmOrder}>
+              <Text style={styles.submitBtnText}>Confirm Order</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.cancelBtn}
+              onPress={() => setShowConfirmation(false)}
+            >
+              <Text style={styles.cancelText}>Go Back</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {submitted && (
+        <View style={styles.successBanner}>
+          <Text style={styles.successTitle}>✓ Order Submitted!</Text>
+          <Text style={styles.successDetail}>
+            Your simulated group order has been confirmed. Pickup at Starbucks
+            UTD in approximately 10 minutes.
+          </Text>
+        </View>
+      )}
       <BottomNav activeTab="Orders" />
     </View>
   );
@@ -162,6 +301,22 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   tagText: { color: "#215C47", fontSize: 10, fontWeight: "600" },
+  badgeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  verifiedBadge: {
+    backgroundColor: "#E6F3EA",
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  verifiedText: {
+    color: "#215C47",
+    fontSize: 10,
+    fontWeight: "700",
+  },
   itemDetails: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -187,4 +342,74 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   submitBtnText: { color: "#FFF", fontWeight: "700", fontSize: 13 },
+  errorCard: {
+    backgroundColor: "#FFF1EF",
+    borderColor: "#E5A5A0",
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 14,
+    gap: 10,
+  },
+  errorText: {
+    color: "#9A3028",
+    fontSize: 12,
+    lineHeight: 19,
+  },
+  errorLink: {
+    color: "#215C47",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    padding: 24,
+  },
+  confirmationCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 24,
+    gap: 12,
+  },
+  confirmationTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#252A26",
+  },
+  confirmationDetail: {
+    fontSize: 13,
+    color: "#68716A",
+  },
+  confirmationTotal: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#215C47",
+    marginTop: 8,
+  },
+  cancelBtn: {
+    padding: 12,
+    alignItems: "center",
+  },
+  cancelText: {
+    color: "#68716A",
+    fontWeight: "600",
+  },
+  successBanner: {
+    backgroundColor: "#E6F3EA",
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 8,
+    borderRadius: 14,
+  },
+  successTitle: {
+    color: "#215C47",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  successDetail: {
+    color: "#215C47",
+    fontSize: 12,
+    marginTop: 4,
+  },
 });

@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
-import { useCart, getDietaryConflicts } from "../context/CartContext";
-import { DrinkArtwork } from "../components/DrinkArtwork";
-import { BottomNav } from "../components/BottomNav";
+// src/screens/CustomizeScreen.tsx
 import { router } from "expo-router";
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { BottomNav } from "../components/BottomNav";
+import { DrinkArtwork } from "../components/DrinkArtwork";
+import { getDietaryConflicts, useCart } from "../context/CartContext";
 
 const money = (val: number) =>
   val.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -28,7 +29,7 @@ export default function CustomizeScreen() {
   const [selectedWhip, setSelectedWhip] = useState(
     currentMember?.whip ?? "Dairy whip",
   );
-  const [quantity, setQuantity] = useState(currentMember?.quantity ?? 1);
+  const [quantity] = useState(currentMember?.quantity ?? 1);
 
   if (!currentMember) return null;
 
