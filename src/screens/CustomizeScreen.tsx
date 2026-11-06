@@ -1,4 +1,3 @@
-// src/screens/CustomizeScreen.tsx
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";

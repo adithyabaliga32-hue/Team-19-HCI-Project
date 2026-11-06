@@ -15,7 +15,7 @@ const money = (val: number) =>
   val.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
 export default function OrdersRoute() {
-  const { members, setActiveMemberId } = useCart();
+  const { members, setActiveMemberId, clearCart } = useCart();
 
   const [submitted, setSubmitted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -90,6 +90,9 @@ export default function OrdersRoute() {
     setShowConfirmation(false);
     setCheckoutError("");
     setSubmitted(true);
+
+    // Clear the cart items in CartContext after successful confirmation
+    clearCart();
   };
 
   return (
@@ -104,7 +107,7 @@ export default function OrdersRoute() {
 
         {/* ORDER ITEMS CARD */}
         <View style={styles.card}>
-          {orderedMembers.length === 0 ? (
+          {orderedMembers.length === 0 && !submitted ? (
             <Text style={styles.cardDetail}>
               No drinks added to group order yet.
             </Text>

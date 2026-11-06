@@ -1,4 +1,3 @@
-// src/screens/HomeScreen.tsx
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -92,34 +91,6 @@ export default function HomeScreen() {
             <Text style={styles.headerTitle}>ServeFlow</Text>
             <Text style={styles.headerSubtitle}>UT Dallas · Student Union</Text>
           </View>
-        </View>
-
-        {/* --- SEARCH BAR --- */}
-        <View style={styles.searchBar}>
-          <Svg width={18} height={18} viewBox="0 0 24 24">
-            <Circle
-              cx={10.8}
-              cy={10.8}
-              r={6.3}
-              fill="none"
-              stroke="#68716A"
-              strokeWidth={1.8}
-            />
-            <Path
-              d="m15.5 15.5 4 4"
-              fill="none"
-              stroke="#68716A"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-            />
-          </Svg>
-          <TextInput
-            placeholder="Search restaurants or drinks"
-            placeholderTextColor="#68716A"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={styles.searchInput}
-          />
         </View>
 
         {/* --- RESTAURANT SELECTION --- */}
