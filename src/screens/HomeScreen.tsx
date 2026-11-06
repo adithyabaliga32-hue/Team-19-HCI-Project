@@ -1,19 +1,19 @@
 // src/screens/HomeScreen.tsx
-import React, { useState } from "react";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
-  View,
-  Text,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
+  Text,
   TextInput,
-  Modal,
+  View,
 } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import { useCart, DietaryTag } from "../context/CartContext";
-import { DrinkArtwork } from "../components/DrinkArtwork";
 import { BottomNav } from "../components/BottomNav";
-import { router } from "expo-router";
+import { DrinkArtwork } from "../components/DrinkArtwork";
+import { DietaryTag, useCart } from "../context/CartContext";
 
 const restaurants = ["Starbucks", "TeaCo"];
 
@@ -286,7 +286,10 @@ export default function HomeScreen() {
             </View>
 
             <Pressable
-              onPress={() => router.push("/Menu")}
+              onPress={() => {
+                setActiveMemberId(member.id);
+                router.push("/Menu");
+              }}
               style={styles.customizeButton}
             >
               <Text style={styles.customizeButtonText}>
