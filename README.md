@@ -1,7 +1,7 @@
 ServeFlow
 **Team 19 | HCI Project**
 
-Link tou Demo Video: https://youtube.com/shorts/ir2aWl1g7yc?feature=share
+Link to Demo Video: https://youtube.com/shorts/ir2aWl1g7yc?feature=share
 
 Overview and Purpose
 ServeFlow is a mobile beverage-ordering interface focused on identifying and resolving ingredient conflicts during customization. It helps customers communicate dietary preferences clearly before submitting an order, reducing the need for staff to clarify ambiguous modifications and remake drinks.
